@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Zap, ZapOff } from 'lucide-react'
 import { BATTERY_DEF_BY_TYPE_ID, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
@@ -7,6 +6,7 @@ import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import Modal from '../components/Modal'
 import PercentSellSelector from '../components/PercentSellSelector'
+import AnimatedNumber, { AnimatedPctFill } from '../components/AnimatedMetric'
 import { getCitySolarStats } from '../utils/citySolarStats'
 import { getSpotEnergyPriceCoinPerKwh, getSpotEnergyTrendLabel } from '../utils/spotEnergyPrice'
 
@@ -298,13 +298,7 @@ function DashboardScreen() {
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
       <Header coins={coins} level={level} />
 
-      <motion.main
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6"
-      >
+      <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
         <section className="max-w-6xl mx-auto space-y-4">
           <article className="rounded-3xl border-4 border-slate-900 bg-sunlit p-4 sm:p-5 shadow-[6px_6px_0px_0px_var(--shade)]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -319,7 +313,14 @@ function DashboardScreen() {
               </div>
               <div className="rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 shadow-[3px_3px_0px_0px_var(--shade)]">
                 <p className="text-xs font-black text-shade-2">Anlık Üretim Verim Skoru</p>
-                <p className="text-xl font-black">%{dashboardData.city.efficiencyPct}</p>
+                <p className="text-xl font-black">
+                  <AnimatedNumber
+                    value={dashboardData.city.efficiencyPct}
+                    prefix="%"
+                    integer
+                    variant="tween"
+                  />
+                </p>
                 {dashboardData.city.dataHint ? (
                   <p className="text-[10px] font-bold text-shade-2 mt-0.5 leading-tight">
                     {dashboardData.city.dataHint}
@@ -331,13 +332,23 @@ function DashboardScreen() {
               <div className="flex items-center justify-between text-xs font-black mb-1">
                 <span>Batarya seviyesi</span>
                 <span>
-                  {hasBatteryStorage ? `%${dashboardData.inventory.batteryFillPct}` : '—'}
+                  {hasBatteryStorage ? (
+                    <AnimatedNumber
+                      value={dashboardData.inventory.batteryFillPct}
+                      prefix="%"
+                      integer
+                      variant="tween"
+                    />
+                  ) : (
+                    '—'
+                  )}
                 </span>
               </div>
               <div className="h-4 rounded-full border-3 border-slate-900 bg-background overflow-hidden">
-                <div
+                <AnimatedPctFill
+                  active={hasBatteryStorage}
+                  pct={dashboardData.inventory.batteryFillPct}
                   className={`h-full ${hasBatteryStorage ? 'bg-sprout-deep' : 'bg-shade/15'}`}
-                  style={{ width: hasBatteryStorage ? `${dashboardData.inventory.batteryFillPct}%` : '0%' }}
                 />
               </div>
               {!hasBatteryStorage && (
@@ -354,28 +365,34 @@ function DashboardScreen() {
           </article>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            <article className="rounded-2xl border-4 border-slate-900 bg-sunlit p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
+            <article className="rounded-2xl border-4 border-slate-900 bg-sunlit p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform duration-200 ease-out">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <SunMedium className="w-4 h-4" />
                 Anlık üretim
               </div>
               <p className="text-2xl font-black">
-                {dashboardData.inventory.instantProductionKwh.toLocaleString('tr-TR', {
-                  maximumFractionDigits: 2,
-                })}{' '}
-                kWh
+                <AnimatedNumber value={dashboardData.inventory.instantProductionKwh} maxFractionDigits={2} /> kWh
               </p>
               <p className="text-xs font-black mt-1">
                 Kirli panelde üretim ciddi düşer.
               </p>
             </article>
-            <article className="rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
+            <article className="rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform duration-200 ease-out">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <BatteryCharging className="w-4 h-4" />
                 Batarya doluluğu
               </div>
               <p className="text-2xl font-black">
-                {hasBatteryStorage ? `%${dashboardData.inventory.batteryFillPct}` : '—'}
+                {hasBatteryStorage ? (
+                  <AnimatedNumber
+                    value={dashboardData.inventory.batteryFillPct}
+                    prefix="%"
+                    integer
+                    variant="tween"
+                  />
+                ) : (
+                  '—'
+                )}
               </p>
               <p className="text-xs font-black mt-1">
                 {hasBatteryStorage
@@ -383,15 +400,19 @@ function DashboardScreen() {
                   : 'Batarya yok — doluluk yalnızca depolama varken anlamlıdır.'}
               </p>
             </article>
-            <article className="rounded-2xl border-4 border-slate-900 bg-sprout p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
+            <article className="rounded-2xl border-4 border-slate-900 bg-sprout p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform duration-200 ease-out">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <Zap className="w-4 h-4" />
                 Depodaki enerji
               </div>
               <p className="text-2xl font-black">
-                {hasBatteryStorage
-                  ? `${dashboardData.inventory.storedEnergyKwh.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} kWh`
-                  : '—'}
+                {hasBatteryStorage ? (
+                  <>
+                    <AnimatedNumber value={dashboardData.inventory.storedEnergyKwh} maxFractionDigits={2} /> kWh
+                  </>
+                ) : (
+                  '—'
+                )}
               </p>
               <p className="text-xs font-black mt-1">
                 {hasBatteryStorage
@@ -399,14 +420,19 @@ function DashboardScreen() {
                   : 'Depolama yok — üretilen enerji bataryaya yazılmaz.'}
               </p>
             </article>
-            <article className="rounded-2xl border-4 border-slate-900 bg-blossom p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
+            <article className="rounded-2xl border-4 border-slate-900 bg-blossom p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform duration-200 ease-out">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <Gauge className="w-4 h-4" />
                 Envanter özeti
               </div>
-              <p className="text-2xl font-black">{dashboardData.inventory.panelCount} panel</p>
+              <p className="text-2xl font-black">
+                <AnimatedNumber value={dashboardData.inventory.panelCount} integer /> panel
+              </p>
               <p className="text-xs font-black mt-1">
-                Batarya: {dashboardData.inventory.batteryCount} / Kirli panel: {dashboardData.inventory.dirtyPanelCount}
+                Batarya:{' '}
+                <AnimatedNumber value={dashboardData.inventory.batteryCount} integer className="font-black" /> / Kirli
+                panel:{' '}
+                <AnimatedNumber value={dashboardData.inventory.dirtyPanelCount} integer className="font-black" />
               </p>
             </article>
           </div>
@@ -428,23 +454,20 @@ function DashboardScreen() {
                 <div className="rounded-xl border-3 border-slate-900 bg-sunlit/70 px-3 py-2">
                   <p className="text-xs font-black text-shade-2">{dashboardData.city.potentialProductionLabel}</p>
                   <p className="text-lg font-black">
-                    {dashboardData.city.potentialProductionKw.toLocaleString('tr-TR', {
-                      maximumFractionDigits: 2,
-                    })}{' '}
+                    <AnimatedNumber value={dashboardData.city.potentialProductionKw} maxFractionDigits={2} />{' '}
                     {dashboardData.city.potentialProductionUnit}
                   </p>
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-breeze/70 px-3 py-2">
                   <p className="text-xs font-black text-shade-2">{dashboardData.city.sunHoursLabel}</p>
-                  <p className="text-lg font-black">{dashboardData.city.sunHours} saat</p>
+                  <p className="text-lg font-black">
+                    <AnimatedNumber value={dashboardData.city.sunHours} maxFractionDigits={1} /> saat
+                  </p>
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-sprout/70 px-3 py-2">
                   <p className="text-xs font-black text-shade-2">Sıcaklık</p>
                   <p className="text-lg font-black">
-                    {dashboardData.city.temperature.toLocaleString('tr-TR', {
-                      maximumFractionDigits: 1,
-                    })}
-                    °C
+                    <AnimatedNumber value={dashboardData.city.temperature} maxFractionDigits={1} suffix="°C" />
                   </p>
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-blossom/70 px-3 py-2">
@@ -456,7 +479,9 @@ function DashboardScreen() {
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-background px-3 py-2 sm:col-span-2">
                   <p className="text-xs font-black text-shade-2">Verimlilik</p>
-                  <p className="text-lg font-black">%{dashboardData.city.efficiencyPct}</p>
+                  <p className="text-lg font-black">
+                    <AnimatedNumber value={dashboardData.city.efficiencyPct} prefix="%" integer variant="tween" />
+                  </p>
                 </div>
               </div>
             </article>
@@ -469,14 +494,21 @@ function DashboardScreen() {
                     ? `Gün içi kotasyon · simülasyon saati ${String(hour).padStart(2, '0')}:00`
                     : 'Satış modalında süre beklerken fiyat kilitlenecek'}
                 </p>
-                <p className="text-2xl font-black">{dashboardData.market.instantPrice.toFixed(2)} Coin/kWh</p>
+                <p className="text-2xl font-black">
+                  <AnimatedNumber
+                    value={dashboardData.market.instantPrice}
+                    minFractionDigits={2}
+                    maxFractionDigits={2}
+                  />{' '}
+                  Coin/kWh
+                </p>
                 <p className="text-sm font-black mt-1">Trend: {dashboardData.market.trend}</p>
                 <p className="text-xs font-black mt-1">Volatilite: {dashboardData.market.volatility}</p>
                 <button
                   type="button"
                   disabled={!canOpenSellModal}
                   onClick={openSellModal}
-                  className="mt-3 w-full rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none hover:bg-sunlit/70 transition-colors disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[4px_4px_0px_0px_var(--shade)]"
+                  className="mt-3 w-full rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-sunlit/70 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[4px_4px_0px_0px_var(--shade)]"
                 >
                   Enerji sat
                 </button>
@@ -486,14 +518,27 @@ function DashboardScreen() {
               </article>
               <article className="rounded-2xl border-4 border-slate-900 bg-breeze-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
                 <h2 className="font-black text-base mb-2">Oyun İçi Zaman / Döngü</h2>
-                <p className="text-2xl font-black">{dashboardData.game.time}</p>
+                <p className="text-2xl font-black">
+                  {isDayActive ? (
+                    <AnimatedNumber
+                      value={hour}
+                      integer
+                      padStartDigits={2}
+                      suffix=":00"
+                      variant="spring"
+                      className="font-black"
+                    />
+                  ) : (
+                    dashboardData.game.time
+                  )}
+                </p>
                 <p className="text-sm font-black mt-1">{dashboardData.game.cycle}</p>
                 <p className="text-xs font-black mt-1">{dashboardData.game.day}</p>
               </article>
             </div>
           </div>
         </section>
-      </motion.main>
+      </main>
 
       <Modal
         isOpen={sellModalOpen}
@@ -507,10 +552,11 @@ function DashboardScreen() {
               <div>
                 <p className="text-xs font-black text-shade-2 uppercase tracking-wide">Enerji başı maliyet</p>
                 <p className="text-xl font-black mt-1">
-                  {frozenSpotCoinPerKwh.toLocaleString('tr-TR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{' '}
+                  <AnimatedNumber
+                    value={frozenSpotCoinPerKwh}
+                    minFractionDigits={2}
+                    maxFractionDigits={2}
+                  />{' '}
                   Coin/kWh
                 </p>
               </div>
@@ -519,14 +565,17 @@ function DashboardScreen() {
             <div className="rounded-2xl border-3 border-slate-900 bg-background p-3 space-y-1">
               <p className="text-xs font-black text-shade-2">Şu an depoda</p>
               <p className="text-lg font-black">
-                {currentEnergy.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} kWh
+                <AnimatedNumber value={currentEnergy} maxFractionDigits={1} /> kWh
               </p>
               <div className="h-3 rounded-full border-2 border-slate-900 bg-breeze overflow-hidden mt-2">
-                <div
+                <AnimatedPctFill
+                  active={batteryCapacity > 0}
+                  pct={
+                    batteryCapacity > 0
+                      ? Math.min(100, Math.round((currentEnergy / batteryCapacity) * 100))
+                      : 0
+                  }
                   className="h-full bg-sprout-deep"
-                  style={{
-                    width: batteryCapacity > 0 ? `${Math.min(100, Math.round((currentEnergy / batteryCapacity) * 100))}%` : '0%',
-                  }}
                 />
               </div>
             </div>
@@ -536,12 +585,8 @@ function DashboardScreen() {
             <div className="rounded-2xl border-3 border-slate-900 bg-sprout/50 p-3 space-y-1">
               <p className="text-xs font-black text-shade-2">Özet</p>
               <p className="text-sm font-black">
-                ≈{' '}
-                {previewKwhSold.toLocaleString('tr-TR', {
-                  maximumFractionDigits: 2,
-                })}{' '}
-                kWh → ≈{' '}
-                {previewCoinsEarned.toLocaleString('tr-TR')} Coin
+                ≈ <AnimatedNumber value={previewKwhSold} maxFractionDigits={2} /> kWh → ≈{' '}
+                <AnimatedNumber value={previewCoinsEarned} integer /> Coin
               </p>
             </div>
 
