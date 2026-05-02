@@ -21,9 +21,9 @@ Bu doküman, SolarCast projesinin ortak UI bileşenlerini `design-system.md` ve 
 
 ### 3. Badge Component (`<Badge />`)
 
-- [ ] Level ve Başarım (Achievement) göstermek için ufak, hap şeklinde (pill-shaped) bileşen.
-- [ ] Sınıflar: `border-4 border-slate-900 rounded-full px-3 py-1 text-sm font-black text-slate-900`.
-- [ ] Arka plan rengi prop olarak geçilebilmeli (örn: `bg-sunny-yellow` veya `bg-mint-green`).
+- [x] Level ve Başarım (Achievement) göstermek için ufak, hap şeklinde (pill-shaped) bileşen.
+- [x] Sınıflar: `border-4 border-slate-900 rounded-full px-3 py-1 text-sm font-black text-slate-900`.
+- [x] Arka plan rengi prop olarak geçilebilmeli (örn: `bg-sunny-yellow` veya `bg-mint-green`).
 
 ### 4. ProgressBar Component (`<ProgressBar />`)
 

@@ -3,6 +3,7 @@ import useGameStore from "./store/useGameStore";
 import { motion } from "framer-motion";
 import Button from "./components/Button";
 import Card from "./components/Card";
+import Badge from "./components/Badge";
 import { Sun, Battery, Settings } from "lucide-react";
 
 function App() {
@@ -159,6 +160,17 @@ function App() {
               <h3 className="font-bold text-xl mb-2">Accent Card</h3>
               <p className="text-slate-600">This is a soft peach accent card with shadow.</p>
             </Card>
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">Badge Variants</h2>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Badge color="bg-sunny-yellow">Level 5</Badge>
+            <Badge color="bg-mint-green">+100 XP</Badge>
+            <Badge color="bg-soft-peach">Achievement</Badge>
+            <Badge color="bg-blue-400">New!</Badge>
+            <Badge color="bg-orange-400">Top Seller</Badge>
           </div>
         </div>
 
