@@ -4,7 +4,6 @@ import useGameStore from '../store/useGameStore'
 
 function PowerHub({
   openUpgradeModal,
-  openMarketModal,
   onEmptySlotClick,
   onLockedSlotClick,
   unlockedSlots: unlockedSlotsProp,

@@ -7,14 +7,14 @@ import useSoundStore from '../store/useSoundStore'
 
 function SettingsScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
-  const coins = useGameStore((s) => s.coins)
+  const credits = useGameStore((s) => s.credits)
   const level = useGameStore((s) => s.level)
   const masterVolume = useSoundStore((s) => s.masterVolume)
   const setMasterVolume = useSoundStore((s) => s.setMasterVolume)
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
-      <Header coins={coins} level={level} />
+      <Header credits={credits} level={level} />
 
       <motion.main
         initial={{ opacity: 0, y: 10 }}
