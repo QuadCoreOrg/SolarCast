@@ -12,6 +12,7 @@ const VALID_SCREENS = new Set([
   'dashboard',
   'market',
   'power_center',
+  'storage_area',
   'research',
   'settings',
 ]);
@@ -55,6 +56,13 @@ const normalizePersistedState = (state) => {
     : 'how_to';
 
   if (state.hasStartedGame && state.selectedCity && ONBOARDING_SCREENS.has(currentScreen)) {
+    return {
+      ...state,
+      currentScreen: 'dashboard',
+    };
+  }
+
+  if (state.hasStartedGame && state.selectedCity && !ONBOARDING_SCREENS.has(currentScreen)) {
     return {
       ...state,
       currentScreen: 'dashboard',
