@@ -38,13 +38,13 @@ export const BATTERIES = {
     id: 'b_basic',
     name: 'Temel Depolama',
     capacity: 200,
-    price: 900,
+    price: 800,
   },
   HIGH: {
     id: 'b_high',
     name: 'Yüksek Kapasiteli Hücre',
     capacity: 420,
-    price: 2220,
+    price: 2200,
     reqLevel: 3,
     reqResearch: 'r_cobalt',
   },
@@ -103,5 +103,8 @@ export const BATTERY_DEF_BY_TYPE_ID = Object.fromEntries(
   Object.values(BATTERIES).map((b) => [b.id, b]),
 )
 
-/** Varsayımal panel temizlik maliyeti (kredi) */
-export const PANEL_CLEAN_COST = 150
+/** Panel temizlik maliyeti (coin) */
+export const PANEL_CLEAN_COST = 50
+
+/** Panel ve depolama yuvalarını ortak açma maliyeti (coin) */
+export const HUB_SLOT_UNLOCK_COST = 1200

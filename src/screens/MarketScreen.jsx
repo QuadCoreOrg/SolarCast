@@ -4,35 +4,103 @@ import { BatteryCharging, Compass, Lock, ShoppingCart, SunMedium } from 'lucide-
 import Modal from '../components/Modal'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
-import SHOP_PRODUCTS from '../constants/shopProducts'
+import {
+  BATTERIES,
+  PANELS,
+  RESEARCHES,
+} from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
+
+const researchLabelById = Object.fromEntries(
+  Object.values(RESEARCHES).map((r) => [r.id, r.name]),
+)
+
+function lockState(def, level, unlockedResearchIds) {
+  const lacksLevel = def.reqLevel != null && level < def.reqLevel
+  const lacksResearch =
+    Boolean(def.reqResearch) && !unlockedResearchIds.includes(def.reqResearch)
+  const isLocked = lacksLevel || lacksResearch
+  return {
+    isLocked,
+    researchLabel: def.reqResearch ? researchLabelById[def.reqResearch] ?? def.reqResearch : null,
+    levelLabel: def.reqLevel != null ? `En az Lv.${def.reqLevel}` : null,
+  }
+}
 
 function MarketScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
-  const credits = useGameStore((s) => s.credits)
+  const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
-  const research = useGameStore((s) => s.research)
-  const [selectedProduct, setSelectedProduct] = useState(null)
+  const unlockedResearches = useGameStore((s) => s.unlockedResearches)
+  const buyItem = useGameStore((s) => s.buyItem)
 
-  const products = useMemo(
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [buyError, setBuyError] = useState('')
+
+  const panelProducts = useMemo(
     () =>
-      SHOP_PRODUCTS.map((product) => {
-        const isLocked = Boolean(product.requiredResearch && !research?.[product.requiredResearch])
-        return { ...product, isLocked }
+      Object.entries(PANELS).map(([gameKey, def]) => {
+        const locks = lockState(def, level, unlockedResearches)
+        const outputKwhRounded = Math.round(def.area * 100) / 100
+        return {
+          id: def.id,
+          category: 'panel',
+          gameKey,
+          name: def.name,
+          price: def.price,
+          isLocked: locks.isLocked,
+          requiredResearchLabel: locks.researchLabel,
+          reqLevelLabel: locks.levelLabel,
+          description:
+            `${def.area} m² panel yüzeyi; tepe güneşte yaklaşık +${outputKwhRounded.toLocaleString('tr-TR')} kWh.` +
+            ' Kirliyken üretim %75 düşer.',
+          displayOutput: `${outputKwhRounded.toLocaleString('tr-TR')} kWh (tepe güneş)`,
+        }
       }),
-    [research],
+    [level, unlockedResearches],
+  )
+
+  const batteryProducts = useMemo(
+    () =>
+      Object.entries(BATTERIES).map(([gameKey, def]) => {
+        const locks = lockState(def, level, unlockedResearches)
+        return {
+          id: def.id,
+          category: 'battery',
+          gameKey,
+          name: def.name,
+          price: def.price,
+          capacityKwh: def.capacity,
+          isLocked: locks.isLocked,
+          requiredResearchLabel: locks.researchLabel,
+          reqLevelLabel: locks.levelLabel,
+          description:
+            `${def.capacity.toLocaleString('tr-TR')} kWh depolama. Birden fazla batarya kapasiteniz toplanır.`,
+        }
+      }),
+    [level, unlockedResearches],
   )
 
   const handleOpenProduct = (product) => {
+    setBuyError('')
     setSelectedProduct(product)
   }
 
-  const panelProducts = products.filter((p) => p.category === 'panel')
-  const batteryProducts = products.filter((p) => p.category === 'battery')
+  const handlePurchase = () => {
+    if (!selectedProduct || selectedProduct.isLocked) return
+    const category = selectedProduct.category === 'panel' ? 'panel' : 'battery'
+    const result = buyItem(category, selectedProduct.gameKey)
+    if (!result.ok) {
+      setBuyError(result.reason || 'Satın alma başarısız.')
+      return
+    }
+    setSelectedProduct(null)
+    setBuyError('')
+  }
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
-      <Header credits={credits} level={level} />
+      <Header coins={coins} level={level} />
 
       <motion.main
         initial={{ opacity: 0, y: 10 }}
@@ -44,7 +112,10 @@ function MarketScreen() {
         <div className="shrink-0 flex items-center justify-between rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
           <div>
             <h1 className="font-black text-2xl">Mağaza</h1>
-            <p className="font-bold text-sm text-shade-2">Panelleri ve depolama ünitelerini buradan satın al.</p>
+            <p className="font-bold text-sm text-shade-2">
+              Ürün listesi tek kaynak:{' '}
+              <span className="font-black">gameData.js</span>
+            </p>
           </div>
           <span className="rounded-full border-2 border-slate-900 bg-background px-3 py-1 text-xs font-black">
             Market Fiyatları Güncel
@@ -83,12 +154,23 @@ function MarketScreen() {
                     )}
                   </div>
                   <p className="font-black text-lg leading-tight">{product.name}</p>
-                  <p className="font-bold text-sm text-shade-2 mt-1">Üretim: +{product.productionPerSec}⚡/sn</p>
-                  <p className="font-black text-base mt-3">{product.price.toLocaleString('tr-TR')} kredi</p>
+                  <p className="font-bold text-sm text-shade-2 mt-1">
+                    Güç göstergesi: +{product.displayOutput}
+                  </p>
+                  <p className="font-black text-base mt-3">
+                    {product.price.toLocaleString('tr-TR')} Coin
+                  </p>
                   {product.isLocked && (
-                    <div className="mt-3 rounded-lg border-2 border-slate-900 bg-background/95 px-2.5 py-1.5">
-                      <p className="text-xs font-black text-shade">Araştırma Gerekli</p>
-                      <p className="text-[11px] font-bold text-shade-2">{product.requiredResearchLabel}</p>
+                    <div className="mt-3 rounded-lg border-2 border-slate-900 bg-background/95 px-2.5 py-1.5 space-y-1">
+                      <p className="text-xs font-black text-shade">Kilit Nedeni</p>
+                      {product.reqLevelLabel && (
+                        <p className="text-[11px] font-bold text-shade-2">{product.reqLevelLabel}</p>
+                      )}
+                      {product.requiredResearchLabel && (
+                        <p className="text-[11px] font-bold text-shade-2">
+                          Araştırma: {product.requiredResearchLabel}
+                        </p>
+                      )}
                     </div>
                   )}
                 </motion.button>
@@ -127,12 +209,23 @@ function MarketScreen() {
                     )}
                   </div>
                   <p className="font-black text-lg leading-tight">{product.name}</p>
-                  <p className="font-bold text-sm text-shade-2 mt-1">Kapasite: {product.capacityKwh} kWh</p>
-                  <p className="font-black text-base mt-3">{product.price.toLocaleString('tr-TR')} kredi</p>
+                  <p className="font-bold text-sm text-shade-2 mt-1">
+                    Kapasite: {product.capacityKwh} kWh
+                  </p>
+                  <p className="font-black text-base mt-3">
+                    {product.price.toLocaleString('tr-TR')} Coin
+                  </p>
                   {product.isLocked && (
-                    <div className="mt-3 rounded-lg border-2 border-slate-900 bg-background/95 px-2.5 py-1.5">
-                      <p className="text-xs font-black text-shade">Araştırma Gerekli</p>
-                      <p className="text-[11px] font-bold text-shade-2">{product.requiredResearchLabel}</p>
+                    <div className="mt-3 rounded-lg border-2 border-slate-900 bg-background/95 px-2.5 py-1.5 space-y-1">
+                      <p className="text-xs font-black text-shade">Kilit Nedeni</p>
+                      {product.reqLevelLabel && (
+                        <p className="text-[11px] font-bold text-shade-2">{product.reqLevelLabel}</p>
+                      )}
+                      {product.requiredResearchLabel && (
+                        <p className="text-[11px] font-bold text-shade-2">
+                          Araştırma: {product.requiredResearchLabel}
+                        </p>
+                      )}
                     </div>
                   )}
                 </motion.button>
@@ -142,36 +235,41 @@ function MarketScreen() {
         </div>
       </motion.main>
 
-      <Modal
-        isOpen={Boolean(selectedProduct)}
-        onClose={() => setSelectedProduct(null)}
-        title={selectedProduct?.name}
-      >
+      <Modal isOpen={Boolean(selectedProduct)} onClose={() => setSelectedProduct(null)} title={selectedProduct?.name}>
         {selectedProduct && (
           <div className="space-y-3">
             <p className="font-bold text-sm text-shade-2">{selectedProduct.description}</p>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
               <p className="font-black text-sm text-shade-2">Kategori</p>
-              <p className="font-black">{selectedProduct.category === 'panel' ? 'Güneş Paneli' : 'Depolama Ünitesi'}</p>
+              <p className="font-black">
+                {selectedProduct.category === 'panel' ? 'Güneş Paneli' : 'Depolama Ünitesi'}
+              </p>
             </div>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
               <p className="font-black text-sm text-shade-2">Performans</p>
               <p className="font-black">
                 {selectedProduct.category === 'panel'
-                  ? `Üretim: +${selectedProduct.productionPerSec}⚡/sn`
+                  ? `Güç: +${selectedProduct.displayOutput}`
                   : `Kapasite: ${selectedProduct.capacityKwh} kWh`}
               </p>
             </div>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
               <p className="font-black text-sm text-shade-2">Fiyat</p>
-              <p className="font-black">{selectedProduct.price.toLocaleString('tr-TR')} kredi</p>
+              <p className="font-black">{selectedProduct.price.toLocaleString('tr-TR')} Coin</p>
             </div>
+
+            {buyError && <p className="text-xs font-bold text-rose-700">{buyError}</p>}
 
             {selectedProduct.isLocked ? (
               <div className="space-y-2">
-                <div className="rounded-xl border-3 border-slate-900 bg-blossom p-3">
+                <div className="rounded-xl border-3 border-slate-900 bg-blossom p-3 space-y-1">
                   <p className="font-black text-sm text-shade-2">Durum</p>
-                  <p className="font-black">Kilitli - Gerekli araştırma: {selectedProduct.requiredResearchLabel}</p>
+                  {selectedProduct.reqLevelLabel && (
+                    <p className="font-black text-xs">{selectedProduct.reqLevelLabel}</p>
+                  )}
+                  {selectedProduct.requiredResearchLabel && (
+                    <p className="font-black text-xs">Araştırma: {selectedProduct.requiredResearchLabel}</p>
+                  )}
                 </div>
                 <motion.button
                   type="button"
@@ -192,6 +290,7 @@ function MarketScreen() {
                 type="button"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={handlePurchase}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border-4 border-slate-900 bg-sunlit-deep py-3 font-black shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer"
               >
                 <ShoppingCart className="w-5 h-5" />

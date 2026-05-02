@@ -1,116 +1,147 @@
 import { motion } from 'framer-motion'
-import { useEffect, useMemo, useState } from 'react'
-import { BatteryCharging, ShoppingCart, SunMedium } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ShoppingCart, SunMedium } from 'lucide-react'
+import { HUB_SLOT_UNLOCK_COST, PANELS, PANEL_CLEAN_COST, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import PowerHub from '../components/PowerHub'
 import TabBar from '../components/TabBar'
-import SHOP_PRODUCTS from '../constants/shopProducts'
 
 function PowerCenterScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
-  const credits = useGameStore((s) => s.credits)
+  const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
-  const research = useGameStore((s) => s.research)
-  const inventory = useGameStore((s) => s.inventory)
+  const activePanels = useGameStore((s) => s.activePanels)
+  const unlockedResearches = useGameStore((s) => s.unlockedResearches)
   const maxSlots = useGameStore((s) => s.maxSlots)
   const unlockedSlots = useGameStore((s) => s.unlockedSlots)
+  const buyItem = useGameStore((s) => s.buyItem)
+  const cleanPanel = useGameStore((s) => s.cleanPanel)
+  const unlockHubSlot = useGameStore((s) => s.unlockHubSlot)
+
   const [selectedItemId, setSelectedItemId] = useState(null)
   const [emptySlotModalIndex, setEmptySlotModalIndex] = useState(null)
   const [selectedEquipmentKey, setSelectedEquipmentKey] = useState(null)
-  const [uiInventory, setUiInventory] = useState(inventory)
+  const [purchaseError, setPurchaseError] = useState('')
+  const [unlockSlotIndex, setUnlockSlotIndex] = useState(null)
+  const [unlockError, setUnlockError] = useState('')
 
   const equipmentOptions = useMemo(
     () =>
-      SHOP_PRODUCTS.map((product) => {
-        const isLocked = Boolean(product.requiredResearch && !research?.[product.requiredResearch])
-        return {
-          key: product.id,
-          type: product.category === 'panel' ? 'panel' : 'battery',
-          name: product.name,
-          sub:
-            product.category === 'panel'
-              ? `+${product.productionPerSec}⚡/sn`
-              : `Depolama ${product.capacityKwh} kWh`,
-          price: `${product.price.toLocaleString('tr-TR')} Kredi`,
-          bg: product.category === 'panel' ? 'bg-sunlit' : 'bg-sprout',
-          Icon: product.category === 'panel' ? SunMedium : BatteryCharging,
-          outputPerSec: product.category === 'panel' ? (product.productionPerSec ?? 0) : 0,
-          chargePct: product.category === 'battery' ? 100 : undefined,
-          isLocked,
-        }
-      }).filter((product) => !product.isLocked),
-    [research],
+      Object.entries(PANELS)
+        .map(([panelKey, panel]) => {
+          const lacksLevel = panel.reqLevel != null && level < panel.reqLevel
+          const lacksResearch =
+            panel.reqResearch != null && !unlockedResearches.includes(panel.reqResearch)
+          const isLocked = lacksLevel || lacksResearch
+          return {
+            key: panel.id,
+            panelKey,
+            type: 'panel',
+            name: panel.name,
+            sub: `Alan ${panel.area}m² · Verim ${(panel.efficiency * 100).toFixed(0)}%`,
+            outputLabel: `~${panel.area.toLocaleString('tr-TR')} kWh (1000 W/m²)`,
+            price: `${panel.price.toLocaleString('tr-TR')} Coin`,
+            rawPrice: panel.price,
+            bg: 'bg-sunlit',
+            Icon: SunMedium,
+            outputPerSec: panel.area,
+            isLocked,
+          }
+        })
+        .filter((product) => !product.isLocked),
+    [level, unlockedResearches],
   )
-  // UI-only unlock flow: store değerlerini değiştirmeden ekranda kilit açılmış gibi gösterir.
-  const [uiUnlockedSlots, setUiUnlockedSlots] = useState(unlockedSlots)
-  const [unlockSlotIndex, setUnlockSlotIndex] = useState(null)
 
-  useEffect(() => {
-    // Store rehidrasyonu / dış güncellemelerde yerel slot önizlemesini eşitle
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- inventory store senkronu
-    setUiInventory(inventory)
-  }, [inventory])
+  const panelInventory = useMemo(
+    () =>
+      activePanels.map((panel) => {
+        const def = PANEL_DEF_BY_TYPE_ID[panel.type]
+        const dirtyDaysLimit = def?.dirtyDaysLimit ?? 0
+        const daysSinceCleaned = panel.daysSinceCleaned ?? 0
+        return {
+          id: panel.id,
+          name: def?.name ?? 'Panel',
+          type: 'panel',
+          outputPerSec: def?.area ?? 0,
+          daysSinceCleaned,
+          dirtyDaysLimit,
+          needsCleaning: dirtyDaysLimit > 0 && daysSinceCleaned >= dirtyDaysLimit,
+        }
+      }),
+    [activePanels],
+  )
 
-  const filledSlots = uiInventory.filter(Boolean).length
-  const unlockPrice = 1200
-  const canAffordUnlock = credits >= unlockPrice
+  const filledSlots = panelInventory.length
+  const unlockPrice = HUB_SLOT_UNLOCK_COST
+  const canAffordUnlock = coins >= unlockPrice
 
   const openUpgradeModal = (itemId) => {
     setSelectedItemId(itemId)
   }
 
   const openEmptySlotPurchaseModal = (slotIndex) => {
-    const firstAvailable = equipmentOptions.find((item) => !item.isLocked) || equipmentOptions[0]
+    if (slotIndex >= unlockedSlots || activePanels.length >= unlockedSlots) return
+
+    const firstAvailable = equipmentOptions[0]
     setEmptySlotModalIndex(slotIndex)
     setSelectedEquipmentKey(firstAvailable?.key ?? null)
+    setPurchaseError('')
   }
 
   const closeEmptySlotPurchaseModal = () => {
     setEmptySlotModalIndex(null)
+    setSelectedEquipmentKey(null)
+    setPurchaseError('')
   }
 
   const openUnlockModal = (slotIndex) => {
+    setUnlockError('')
     setUnlockSlotIndex(slotIndex)
   }
 
   const closeUnlockModal = () => {
     setUnlockSlotIndex(null)
+    setUnlockError('')
   }
 
   const handleUnlockPurchase = () => {
-    if (!canAffordUnlock) {
+    if (!canAffordUnlock) return
+    const result = unlockHubSlot()
+    if (!result.ok) {
+      setUnlockError(result.reason || 'Yuva açılamadı.')
       return
     }
-    setUiUnlockedSlots((prev) => Math.min(prev + 1, maxSlots))
     closeUnlockModal()
   }
 
-  const handleUiEquipmentPurchase = () => {
-    if (emptySlotModalIndex === null || !selectedEquipment) {
+  const handlePanelPurchase = () => {
+    if (emptySlotModalIndex === null || !selectedEquipment) return
+
+    if (activePanels.length >= unlockedSlots) {
+      setPurchaseError('Önce yeni yuva açmalısın.')
       return
     }
 
-    setUiInventory((prev) => {
-      const next = [...prev]
-      next[emptySlotModalIndex] = {
-        id: `ui-${selectedEquipment.key}-${emptySlotModalIndex}`,
-        name: selectedEquipment.name,
-        type: selectedEquipment.type,
-        outputPerSec: selectedEquipment.outputPerSec,
-        chargePct: selectedEquipment.chargePct,
-      }
-      return next
-    })
+    const result = buyItem('panel', selectedEquipment.panelKey)
+    if (!result?.ok) {
+      setPurchaseError(result?.reason || 'Satın alma başarısız.')
+      return
+    }
 
     closeEmptySlotPurchaseModal()
   }
 
+  const handleCleanPanel = (panelId) => {
+    cleanPanel(panelId, PANEL_CLEAN_COST)
+  }
+
   const selectedItem = useMemo(
-    () => uiInventory.find((item) => item?.id === selectedItemId) || null,
-    [uiInventory, selectedItemId],
+    () => panelInventory.find((item) => item?.id === selectedItemId) || null,
+    [panelInventory, selectedItemId],
   )
+
   const selectedEquipment =
     selectedEquipmentKey != null
       ? equipmentOptions.find((item) => item.key === selectedEquipmentKey) ?? null
@@ -118,7 +149,7 @@ function PowerCenterScreen() {
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
-      <Header credits={credits} level={level} />
+      <Header coins={coins} level={level} />
 
       <motion.main
         initial={{ opacity: 0, y: 10 }}
@@ -132,15 +163,16 @@ function PowerCenterScreen() {
             <div className="flex items-center justify-between mb-3">
               <h1 className="font-black text-2xl">Güç Merkezi</h1>
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-3 py-1 text-xs font-black">
-                {filledSlots}/{uiUnlockedSlots} Dolu - Toplam {maxSlots} Yuva
+                {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
             <PowerHub
               openUpgradeModal={openUpgradeModal}
+              onCleanPanel={handleCleanPanel}
               onEmptySlotClick={openEmptySlotPurchaseModal}
               onLockedSlotClick={openUnlockModal}
-              unlockedSlots={uiUnlockedSlots}
-              inventoryItems={uiInventory}
+              unlockedSlots={unlockedSlots}
+              inventoryItems={panelInventory}
             />
           </article>
         </section>
@@ -149,16 +181,24 @@ function PowerCenterScreen() {
       <Modal
         isOpen={Boolean(selectedItem)}
         onClose={() => setSelectedItemId(null)}
-        title={selectedItem ? selectedItem.name : 'Eşya Detayı'}
+        title={selectedItem ? selectedItem.name : 'Panel Detayı'}
       >
         {selectedItem && (
           <div className="space-y-2 font-bold text-shade">
-            <p className="text-sm text-shade-2">Tip: {selectedItem.type === 'panel' ? 'Güneş Paneli' : 'Batarya'}</p>
-            {selectedItem.type === 'panel' && (
-              <p className="text-base">Üretim: +{selectedItem.outputPerSec ?? 0}⚡/sn</p>
+            <p className="text-sm text-shade-2">Tip: Güneş Paneli</p>
+            <p className="text-base">Üretim: +{selectedItem.outputPerSec ?? 0} kWh (1000 W/m²)</p>
+            <p className="text-sm text-shade-2">Son temizlikten beri: {selectedItem.daysSinceCleaned ?? 0} gün</p>
+            {selectedItem.needsCleaning && (
+              <p className="text-xs text-rose-800">Kirli panelde üretim %75 azalır (verim %25'e düşer).</p>
             )}
-            {selectedItem.type === 'battery' && (
-              <p className="text-base">Doluluk: %{selectedItem.chargePct ?? 0}</p>
+            {selectedItem.needsCleaning && (
+              <button
+                type="button"
+                onClick={() => handleCleanPanel(selectedItem.id)}
+                className="rounded-xl border-3 border-slate-900 bg-sunlit px-3 py-1 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)]"
+              >
+                {PANEL_CLEAN_COST} Coin ile Temizle
+              </button>
             )}
             <p className="text-sm text-shade-soft">Yükseltme ve detay aksiyonları yakında burada olacak.</p>
           </div>
@@ -168,13 +208,13 @@ function PowerCenterScreen() {
       <Modal
         isOpen={emptySlotModalIndex !== null}
         onClose={closeEmptySlotPurchaseModal}
-        title="Ekipman Satın Al"
+        title="Panel Satın Al"
       >
         <div className="space-y-4 font-bold text-shade">
           <p className="text-sm text-shade-2">
             {emptySlotModalIndex !== null
-              ? `${emptySlotModalIndex + 1}. boş yuva için ekipman seç`
-              : 'Boş yuva için ekipman seç'}
+              ? `${emptySlotModalIndex + 1}. boş yuva için panel seç`
+              : 'Boş yuva için panel seç'}
           </p>
 
           <div className="grid grid-cols-1 gap-2">
@@ -202,32 +242,36 @@ function PowerCenterScreen() {
                   </div>
                   <p className="text-sm font-black leading-tight">{option.name}</p>
                   <p className="text-xs text-shade-2 mt-1">{option.sub}</p>
+                  <p className="text-xs text-shade-soft mt-1">{option.outputLabel}</p>
                 </motion.button>
               )
             })}
             {equipmentOptions.length === 0 && (
               <div className="rounded-2xl border-4 border-slate-900 bg-background p-3 text-center">
-                <p className="text-sm font-black">Henüz secilebilir ekipman yok</p>
-                <p className="text-xs text-shade-soft mt-1">Arastirma acildikca burada ekipmanlar gorunecek.</p>
+                <p className="text-sm font-black">Henüz seçilebilir panel yok</p>
+                <p className="text-xs text-shade-soft mt-1">Araştırmalar açıldıkça burada panel seçenekleri görünecek.</p>
               </div>
             )}
           </div>
 
           <div className="rounded-2xl border-3 border-slate-900 bg-breeze/40 p-3">
-            <p className="text-xs text-shade-soft">Seçilen Ekipman</p>
-            <p className="text-base font-black">{selectedEquipment ? `${selectedEquipment.name} - ${selectedEquipment.price}` : '-'}</p>
+            <p className="text-xs text-shade-soft">Seçilen Panel</p>
+            <p className="text-base font-black">
+              {selectedEquipment ? `${selectedEquipment.name} - ${selectedEquipment.price}` : '-'}
+            </p>
           </div>
-          <p className="text-xs text-shade-soft">Bu modal sadece UI tasarımıdır, gerçek satın alma işlemi çalışmaz.</p>
+
+          {purchaseError && <p className="text-xs text-rose-700">{purchaseError}</p>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={handleUiEquipmentPurchase}
+              onClick={handlePanelPurchase}
               disabled={!selectedEquipment}
               className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
             >
               <ShoppingCart className="w-4 h-4" />
-              Seçili Ekipmanı Satın Al
+              Seçili Paneli Satın Al
             </button>
             <button
               type="button"
@@ -247,18 +291,16 @@ function PowerCenterScreen() {
           </p>
           <div className="rounded-2xl border-3 border-slate-900 bg-breeze/50 p-3">
             <p className="text-xs text-shade-soft">Açma Bedeli</p>
-            <p className="text-xl font-black">{unlockPrice} Kredi</p>
+            <p className="text-xl font-black">{unlockPrice.toLocaleString('tr-TR')} Coin</p>
           </div>
           <div className="rounded-2xl border-3 border-slate-900 bg-background p-3">
-            <p className="text-xs text-shade-soft">Mevcut Kredi</p>
-            <p className="text-xl font-black">{credits} Kredi</p>
+            <p className="text-xs text-shade-soft">Mevcut Coin</p>
+            <p className="text-xl font-black">{coins.toLocaleString('tr-TR')} Coin</p>
           </div>
           {!canAffordUnlock && (
             <p className="text-xs text-rose-700">Yeterli coin yok. Bu yuvayı açmak için daha fazla coin gerekli.</p>
           )}
-          <p className="text-xs text-shade-soft">
-            Bu akış sadece UI gösterimidir. Satın alma ve coin düşümü gerçek oyun verisini etkilemez.
-          </p>
+          {unlockError && <p className="text-xs text-rose-700">{unlockError}</p>}
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               type="button"
@@ -266,7 +308,7 @@ function PowerCenterScreen() {
               disabled={!canAffordUnlock}
               className="flex-1 rounded-2xl border-4 border-slate-900 bg-sprout px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_var(--shade)]"
             >
-              {unlockPrice} Kredi Öde ve Aç
+              {unlockPrice.toLocaleString('tr-TR')} Coin Öde ve Aç
             </button>
             <button
               type="button"

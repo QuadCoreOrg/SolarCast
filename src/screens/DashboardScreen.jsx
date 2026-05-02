@@ -1,139 +1,49 @@
 import { motion } from 'framer-motion'
-import {
-  BatteryCharging,
-  CloudSun,
-  FastForward,
-  Gauge,
-  MapPin,
-  Pause,
-  Play,
-  SunMedium,
-  Wallet,
-} from 'lucide-react'
-import { BATTERY_DEF_BY_TYPE_ID } from '../constants/gameData'
+import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Wallet } from 'lucide-react'
+import { BATTERY_DEF_BY_TYPE_ID, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import { getCitySolarStats } from '../utils/citySolarStats'
 
-const MONTHS_TR = [
-  'Ocak',
-  'Şubat',
-  'Mart',
-  'Nisan',
-  'Mayıs',
-  'Haziran',
-  'Temmuz',
-  'Ağustos',
-  'Eylül',
-  'Ekim',
-  'Kasım',
-  'Aralık',
-]
-
 function DashboardScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
-  const credits = useGameStore((s) => s.credits)
+  const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
   const selectedCity = useGameStore((s) => s.selectedCity)
-  const hasStartedGame = useGameStore((s) => s.hasStartedGame)
-  const startDay = useGameStore((s) => s.startDay)
-  const endDay = useGameStore((s) => s.endDay)
   const gameLoopMode = useGameStore((s) => s.gameLoopMode)
-  const setGameLoopMode = useGameStore((s) => s.setGameLoopMode)
   const day = useGameStore((s) => s.day)
   const hour = useGameStore((s) => s.hour)
   const isDayActive = useGameStore((s) => s.isDayActive)
   const currentEnergy = useGameStore((s) => s.currentEnergy)
   const activePanels = useGameStore((s) => s.activePanels)
   const activeBatteries = useGameStore((s) => s.activeBatteries)
+  const dailyForecast = useGameStore((s) => s.dailyForecast)
 
   const batteryCapacity = activeBatteries.reduce((sum, b) => {
     const def = BATTERY_DEF_BY_TYPE_ID[b.type]
     return sum + (def?.capacity ?? 0)
   }, 0)
 
-  const batteryFillPct =
-    batteryCapacity > 0
-      ? Math.min(100, Math.round((currentEnergy / batteryCapacity) * 100))
-      : 0
+  const hasBatteryStorage = batteryCapacity > 0
+  const batteryFillPct = hasBatteryStorage
+    ? Math.min(100, Math.round((currentEnergy / batteryCapacity) * 100))
+    : 0
+  const batteryFull = hasBatteryStorage && currentEnergy >= batteryCapacity
 
-  const calendarDate = new Date(2026, 0, day)
-  const calendarLabel = `${calendarDate.getDate()} ${MONTHS_TR[calendarDate.getMonth()]}`
-
-  const headerSlot =
-    hasStartedGame ? (
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="rounded-full border-3 border-slate-900 bg-background p-1 shadow-[2px_2px_0px_0px_var(--shade)] flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setGameLoopMode('pause')}
-            className={`rounded-full border-2 px-2 py-1 transition-colors ${
-              gameLoopMode === 'pause'
-                ? 'border-slate-900 bg-blossom'
-                : 'border-transparent bg-transparent hover:bg-breeze'
-            }`}
-            title="Duraklat"
-            aria-label="Duraklat"
-          >
-            <Pause className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setGameLoopMode('play')}
-            className={`rounded-full border-2 px-2 py-1 transition-colors ${
-              gameLoopMode === 'play'
-                ? 'border-slate-900 bg-sprout'
-                : 'border-transparent bg-transparent hover:bg-breeze'
-            }`}
-            title="Normal hız"
-            aria-label="Normal hız"
-          >
-            <Play className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setGameLoopMode('fast')}
-            className={`rounded-full border-2 px-2 py-1 transition-colors ${
-              gameLoopMode === 'fast'
-                ? 'border-slate-900 bg-sunlit'
-                : 'border-transparent bg-transparent hover:bg-breeze'
-            }`}
-            title="Hızlandır / otomatik gün atla"
-            aria-label="Hızlandır / otomatik gün atla"
-          >
-            <FastForward className="w-3.5 h-3.5" />
-          </button>
-        </div>
-        <span className="rounded-full border-2 border-slate-900 bg-blossom px-2.5 py-1 text-[11px] font-black whitespace-nowrap">
-          {calendarLabel}
-        </span>
-        <span className="rounded-full border-2 border-slate-900 bg-breeze px-2.5 py-1 text-[11px] font-black whitespace-nowrap">
-          Gün {day} • Saat {String(hour).padStart(2, '0')}:00
-        </span>
-        {!isDayActive ? (
-          <button
-            type="button"
-            onClick={() => {
-              void startDay()
-            }}
-            className="rounded-full border-3 border-slate-900 bg-sunlit px-3 py-1 text-[11px] font-black uppercase tracking-wide shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-px whitespace-nowrap"
-          >
-            Yeni Güne Geç
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => endDay()}
-              className="rounded-full border-3 border-slate-900 bg-background px-3 py-1 text-[11px] font-black shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-px whitespace-nowrap"
-            >
-              Günü Bitir
-            </button>
-          </>
-        )}
-      </div>
-    ) : null
+  const hourForecast = dailyForecast[hour]
+  const gtiUsed = typeof hourForecast?.gti_used === 'number' ? hourForecast.gti_used : 0
+  const currentProductionKw = activePanels.reduce((sum, panel) => {
+    const def = PANEL_DEF_BY_TYPE_ID[panel.type]
+    if (!def) return sum
+    const dirty = (panel.daysSinceCleaned ?? 0) >= def.dirtyDaysLimit
+    const effMult = dirty ? 0.25 : 1
+    return sum + def.area * effMult * (gtiUsed / 1000)
+  }, 0)
+  const dirtyPanelCount = activePanels.filter((panel) => {
+    const def = PANEL_DEF_BY_TYPE_ID[panel.type]
+    return def ? (panel.daysSinceCleaned ?? 0) >= def.dirtyDaysLimit : false
+  }).length
 
   const cityName = selectedCity || 'Konya'
   const cityStats = getCitySolarStats(cityName)
@@ -141,9 +51,11 @@ function DashboardScreen() {
   const dashboardData = {
     inventory: {
       panelCount: activePanels.length,
-      totalProductionKw: Math.round(currentEnergy),
+      totalProductionKw: Math.round(currentProductionKw * 100) / 100,
       batteryFillPct,
-      credits,
+      coins,
+      batteryCount: activeBatteries.length,
+      dirtyPanelCount,
     },
     city: {
       name: cityName,
@@ -173,7 +85,7 @@ function DashboardScreen() {
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
-      <Header credits={credits} level={level} headerSlot={headerSlot} />
+      <Header coins={coins} level={level} />
 
       <motion.main
         initial={{ opacity: 0, y: 10 }}
@@ -202,14 +114,26 @@ function DashboardScreen() {
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs font-black mb-1">
                 <span>Batarya seviyesi</span>
-                <span>%{dashboardData.inventory.batteryFillPct}</span>
+                <span>
+                  {hasBatteryStorage ? `%${dashboardData.inventory.batteryFillPct}` : '—'}
+                </span>
               </div>
               <div className="h-4 rounded-full border-3 border-slate-900 bg-background overflow-hidden">
                 <div
-                  className="h-full bg-sprout-deep"
-                  style={{ width: `${dashboardData.inventory.batteryFillPct}%` }}
+                  className={`h-full ${hasBatteryStorage ? 'bg-sprout-deep' : 'bg-shade/15'}`}
+                  style={{ width: hasBatteryStorage ? `${dashboardData.inventory.batteryFillPct}%` : '0%' }}
                 />
               </div>
+              {!hasBatteryStorage && (
+                <p className="text-[11px] font-bold text-shade-2 mt-1">
+                  Batarya yok — üretim depolanmıyor. Depolama için batarya satın al.
+                </p>
+              )}
+              {batteryFull && (
+                <p className="text-[11px] font-bold text-blossom-deep mt-1">
+                  Depo dolu — yeni batarya alın ya da enerjilerinizi satın.
+                </p>
+              )}
             </div>
           </article>
 
@@ -219,24 +143,30 @@ function DashboardScreen() {
                 <SunMedium className="w-4 h-4" />
                 Toplam Üretim
               </div>
-              <p className="text-2xl font-black">{dashboardData.inventory.totalProductionKw} kW</p>
-              <p className="text-xs font-black mt-1">Son 24s: +84 kW</p>
+              <p className="text-2xl font-black">{dashboardData.inventory.totalProductionKw} kWh</p>
+              <p className="text-xs font-black mt-1">Kirli panelde üretim %75 azalır</p>
             </article>
             <article className="rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <BatteryCharging className="w-4 h-4" />
                 Batarya Doluluğu
               </div>
-              <p className="text-2xl font-black">%{dashboardData.inventory.batteryFillPct}</p>
-              <p className="text-xs font-black mt-1">Kritik eşik: %20</p>
+              <p className="text-2xl font-black">
+                {hasBatteryStorage ? `%${dashboardData.inventory.batteryFillPct}` : '—'}
+              </p>
+              <p className="text-xs font-black mt-1">
+                {hasBatteryStorage
+                  ? 'Kritik eşik: %20'
+                  : 'Batarya yok — doluluk yalnızca depolama varken anlamlıdır.'}
+              </p>
             </article>
             <article className="rounded-2xl border-4 border-slate-900 bg-sprout p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <Wallet className="w-4 h-4" />
-                Krediler
+                Coin
               </div>
-              <p className="text-2xl font-black">{dashboardData.inventory.credits.toLocaleString('tr-TR')}</p>
-              <p className="text-xs font-black mt-1">Bugün: +320 kredi</p>
+              <p className="text-2xl font-black">{dashboardData.inventory.coins.toLocaleString('tr-TR')}</p>
+              <p className="text-xs font-black mt-1">Bugün: +320 Coin</p>
             </article>
             <article className="rounded-2xl border-4 border-slate-900 bg-blossom p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
@@ -244,7 +174,9 @@ function DashboardScreen() {
                 Envanter Özeti
               </div>
               <p className="text-2xl font-black">{dashboardData.inventory.panelCount} panel</p>
-              <p className="text-xs font-black mt-1">Aktif: 16 / Bakım: 2</p>
+              <p className="text-xs font-black mt-1">
+                Batarya: {dashboardData.inventory.batteryCount} / Kirli panel: {dashboardData.inventory.dirtyPanelCount}
+              </p>
             </article>
           </div>
 

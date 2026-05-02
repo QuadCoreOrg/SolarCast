@@ -4,6 +4,7 @@ import useGameStore from '../store/useGameStore'
 
 function PowerHub({
   openUpgradeModal,
+  onCleanPanel,
   onEmptySlotClick,
   onLockedSlotClick,
   unlockedSlots: unlockedSlotsProp,
@@ -51,9 +52,13 @@ function PowerHub({
 
           if (item) {
             const isPanel = item.type === 'panel'
-            const statusText = isPanel ? `+${item.outputPerSec ?? 0}⚡/sn` : `%${item.chargePct ?? 0} Full`
+            const panelOutput = item.outputPerSec ?? 0
+            const statusText = isPanel ? `+${panelOutput} kWh` : `%${item.chargePct ?? 0} Full`
             const Icon = isPanel ? SunMedium : BatteryCharging
             const iconBoxClass = isPanel ? 'bg-breeze' : 'bg-sprout'
+            const panelCardTone = item.needsCleaning
+              ? 'bg-rose-100 border-rose-700'
+              : 'bg-background border-slate-900'
 
             return (
               <motion.button
@@ -63,8 +68,25 @@ function PowerHub({
                 whileHover={{ y: -3, scale: 1.02 }}
                 whileTap={{ y: 0, scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 24 }}
-                className="rounded-3xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)] text-shade cursor-pointer"
+                className={`rounded-3xl border-4 p-4 shadow-[4px_4px_0px_0px_var(--shade)] text-shade cursor-pointer ${panelCardTone}`}
               >
+                {item.needsCleaning && (
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="rounded-full border-2 border-slate-900 bg-rose-200 px-2 py-0.5 text-[10px] font-black text-rose-900">
+                      Temizlenmeli
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onCleanPanel?.(item.id)
+                      }}
+                      className="rounded-full border-2 border-slate-900 bg-background px-2 py-0.5 text-[10px] font-black hover:bg-breeze"
+                    >
+                      Temizle
+                    </button>
+                  </div>
+                )}
                 <div className="mx-auto mb-3 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background">
                   <div className={`w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center ${iconBoxClass}`}>
                     <Icon className="w-6 h-6" strokeWidth={2.25} />
@@ -72,6 +94,9 @@ function PowerHub({
                 </div>
                 <p className="font-black text-lg leading-tight">{item.name}</p>
                 <p className="font-black text-sm text-shade-2 mt-1">{statusText}</p>
+                {item.needsCleaning && (
+                  <p className="font-black text-xs text-rose-800 mt-1">Verim %25 (-%75 kayıp)</p>
+                )}
               </motion.button>
             )
           }

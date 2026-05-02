@@ -7,7 +7,7 @@ import useGameStore from '../store/useGameStore'
 
 function ExploreScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
-  const credits = useGameStore((s) => s.credits)
+  const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
   const research = useGameStore((s) => s.research)
   const unlockResearch = useGameStore((s) => s.unlockResearch)
@@ -76,7 +76,7 @@ function ExploreScreen() {
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
-      <Header credits={credits} level={level} />
+      <Header coins={coins} level={level} />
 
       <motion.main
         initial={{ opacity: 0, y: 10 }}

@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import {
   BATTERIES_BY_KEY,
   BATTERY_DEF_BY_TYPE_ID,
+  HUB_SLOT_UNLOCK_COST,
   LEGACY_RESEARCH_KEY_TO_ID,
   PANELS_BY_KEY,
   PANEL_CLEAN_COST,
@@ -14,7 +15,7 @@ import GAME_CONFIG from '../config/gameConfig'
 import { calculateGameDayProduction } from '../services/production'
 
 const GAME_STORAGE_KEY = 'solarcast_game_store'
-const GAME_STORE_VERSION = 4
+const GAME_STORE_VERSION = 5
 
 const ONBOARDING_SCREENS = new Set(['how_to', 'city_select'])
 const VALID_SCREENS = new Set([
@@ -83,7 +84,7 @@ const createInitialGameState = () => ({
   level: 1,
   experience: 0,
 
-  credits: 2000,
+  coins: 2000,
   currentEnergy: 0,
 
   day: 1,
@@ -127,11 +128,11 @@ const normalizePersistedState = (state) => {
     currentScreen = 'how_to'
   }
 
-  const credits =
-    typeof state.credits === 'number'
-      ? state.credits
-      : typeof state.coins === 'number'
-        ? state.coins
+  const coins =
+    typeof state.coins === 'number'
+      ? state.coins
+      : typeof state.credits === 'number'
+        ? state.credits
         : 2000
 
   const currentEnergy =
@@ -159,7 +160,7 @@ const normalizePersistedState = (state) => {
   return {
     ...state,
     currentScreen,
-    credits,
+    coins,
     currentEnergy,
     day: typeof state.day === 'number' ? state.day : 1,
     hour: typeof state.hour === 'number' ? state.hour : 0,
@@ -190,7 +191,7 @@ const persistedStateKeys = [
   'level',
   'experience',
 
-  'credits',
+  'coins',
   'currentEnergy',
   'day',
   'hour',
@@ -307,8 +308,8 @@ const useGameStore = create(
             if (!def) continue
             const dirty = (panel.daysSinceCleaned ?? 0) >= def.dirtyDaysLimit
             const effMult = dirty ? 0.25 : 1
-            const kwHour =
-              def.area * def.efficiency * effMult * (gtiUsed / 1000)
+            // Oyun dengesi: baz verimlilik 1 kabul edilir, kirli panel %75 düşer.
+            const kwHour = def.area * effMult * (gtiUsed / 1000)
             totalKw += kwHour
           }
 
@@ -318,12 +319,11 @@ const useGameStore = create(
             if (bdef) maxCapacity += bdef.capacity
           }
 
-          const cap =
-            maxCapacity > 0 ? maxCapacity : Number.POSITIVE_INFINITY
-
-          const nextEnergy = Number.isFinite(cap)
-            ? Math.min(cap, state.currentEnergy + totalKw)
-            : state.currentEnergy + totalKw
+          // Batarya yoksa depolama yok: üretim birikmez (şebekeye kaçar / boşa gider).
+          const nextEnergy =
+            maxCapacity > 0
+              ? Math.min(maxCapacity, state.currentEnergy + totalKw)
+              : 0
 
           const workedState = {
             ...state,
@@ -345,22 +345,42 @@ const useGameStore = create(
           }
         }),
 
-      cleanPanel: (panelId, costCredits = PANEL_CLEAN_COST) =>
+      cleanPanel: (panelId, costCoins = PANEL_CLEAN_COST) =>
         set((state) => {
           const idx = state.activePanels.findIndex((p) => p.id === panelId)
           if (idx === -1) return {}
-          if (state.credits < costCredits) return {}
+          if (state.coins < costCoins) return {}
 
           const nextPanels = state.activePanels.map((p) =>
             p.id === panelId ? { ...p, daysSinceCleaned: 0 } : p,
           )
 
           return {
-            credits: state.credits - costCredits,
+            coins: state.coins - costCoins,
             activePanels: nextPanels,
             ...touch(),
           }
         }),
+
+      /**
+       * Panel ve depolama için ortak yuva kilidini açar (fiyat gameData).
+       * @returns {{ ok: true } | { ok: false, reason: string }}
+       */
+      unlockHubSlot: () => {
+        const state = get()
+        if (state.unlockedSlots >= state.maxSlots) {
+          return { ok: false, reason: 'Tüm yuvalar zaten açık' }
+        }
+        if (state.coins < HUB_SLOT_UNLOCK_COST) {
+          return { ok: false, reason: 'Yetersiz coin' }
+        }
+        set({
+          coins: state.coins - HUB_SLOT_UNLOCK_COST,
+          unlockedSlots: state.unlockedSlots + 1,
+          ...touch(),
+        })
+        return { ok: true }
+      },
 
       /**
        * @param {'panel' | 'battery' | 'research'} type
@@ -377,13 +397,13 @@ const useGameStore = create(
           if (state.unlockedResearches.includes(def.id)) {
             return { ok: false, reason: 'Zaten açık' }
           }
-          if (state.credits < def.price) {
-            return { ok: false, reason: 'Yetersiz kredi' }
+          if (state.coins < def.price) {
+            return { ok: false, reason: 'Yetersiz coin' }
           }
 
           const legacyKey = RESEARCH_ID_TO_LEGACY_KEY[def.id]
           set({
-            credits: state.credits - def.price,
+            coins: state.coins - def.price,
             unlockedResearches: [...state.unlockedResearches, def.id],
             research:
               legacyKey != null ? { ...state.research, [legacyKey]: true } : state.research,
@@ -395,14 +415,17 @@ const useGameStore = create(
         if (type === 'panel') {
           const def = PANELS_BY_KEY[key]
           if (!def) return { ok: false, reason: 'Geçersiz panel' }
+          if (state.activePanels.length >= state.unlockedSlots) {
+            return { ok: false, reason: 'Boş panel yuvası yok — önce yuva aç' }
+          }
           if (def.reqLevel != null && state.level < def.reqLevel) {
             return { ok: false, reason: 'Seviye yetersiz' }
           }
           if (def.reqResearch && !state.unlockedResearches.includes(def.reqResearch)) {
             return { ok: false, reason: 'Araştırma gerekli' }
           }
-          if (state.credits < def.price) {
-            return { ok: false, reason: 'Yetersiz kredi' }
+          if (state.coins < def.price) {
+            return { ok: false, reason: 'Yetersiz coin' }
           }
 
           const newPanel = {
@@ -412,7 +435,7 @@ const useGameStore = create(
           }
 
           set({
-            credits: state.credits - def.price,
+            coins: state.coins - def.price,
             activePanels: [...state.activePanels, newPanel],
             ...touch(),
           })
@@ -422,14 +445,17 @@ const useGameStore = create(
         if (type === 'battery') {
           const def = BATTERIES_BY_KEY[key]
           if (!def) return { ok: false, reason: 'Geçersiz batarya' }
+          if (state.activeBatteries.length >= state.unlockedSlots) {
+            return { ok: false, reason: 'Boş depolama yuvası yok — önce yuva aç' }
+          }
           if (def.reqLevel != null && state.level < def.reqLevel) {
             return { ok: false, reason: 'Seviye yetersiz' }
           }
           if (def.reqResearch && !state.unlockedResearches.includes(def.reqResearch)) {
             return { ok: false, reason: 'Araştırma gerekli' }
           }
-          if (state.credits < def.price) {
-            return { ok: false, reason: 'Yetersiz kredi' }
+          if (state.coins < def.price) {
+            return { ok: false, reason: 'Yetersiz coin' }
           }
 
           const newBatt = {
@@ -438,7 +464,7 @@ const useGameStore = create(
           }
 
           set({
-            credits: state.credits - def.price,
+            coins: state.coins - def.price,
             activeBatteries: [...state.activeBatteries, newBatt],
             ...touch(),
           })
@@ -448,15 +474,15 @@ const useGameStore = create(
         return { ok: false, reason: 'Geçersiz tip' }
       },
 
-      addCredits: (amount) =>
+      addCoins: (amount) =>
         set((state) => ({
-          credits: state.credits + amount,
+          coins: state.coins + amount,
           ...touch(),
         })),
 
-      spendCredits: (amount) =>
+      spendCoins: (amount) =>
         set((state) => ({
-          credits: Math.max(0, state.credits - amount),
+          coins: Math.max(0, state.coins - amount),
           ...touch(),
         })),
 
@@ -530,7 +556,7 @@ const useGameStore = create(
         }
         const migrated = {
           ...persistedState,
-          credits: persistedState.credits ?? persistedState.coins ?? 2000,
+          coins: persistedState.coins ?? persistedState.credits ?? 2000,
           currentEnergy:
             persistedState.currentEnergy ?? persistedState.energy ?? 0,
           day: persistedState.day ?? 1,
@@ -549,7 +575,7 @@ const useGameStore = create(
           dailyForecast: persistedState.dailyForecast ?? [],
           unlockedResearches: persistedState.unlockedResearches ?? [],
         }
-        delete migrated.coins
+        delete migrated.credits
         delete migrated.energy
         return migrated
       },

@@ -1,71 +1,127 @@
 import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { BatteryCharging, CirclePlus, ShoppingCart } from 'lucide-react'
+import { BATTERIES, BATTERY_DEF_BY_TYPE_ID, HUB_SLOT_UNLOCK_COST } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import TabBar from '../components/TabBar'
-import SHOP_PRODUCTS from '../constants/shopProducts'
+
+function lockBattery(def, level, unlockedResearchIds) {
+  const lacksLevel = def.reqLevel != null && level < def.reqLevel
+  const lacksResearch =
+    Boolean(def.reqResearch) && !unlockedResearchIds.includes(def.reqResearch)
+  return !lacksLevel && !lacksResearch
+}
 
 function StorageAreaScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
   const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
-  const inventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
   const unlockedSlots = useGameStore((s) => s.unlockedSlots)
-  const research = useGameStore((s) => s.research)
+  const unlockedResearches = useGameStore((s) => s.unlockedResearches)
+  const activeBatteries = useGameStore((s) => s.activeBatteries)
+  const currentEnergy = useGameStore((s) => s.currentEnergy)
+  const buyItem = useGameStore((s) => s.buyItem)
+  const unlockHubSlot = useGameStore((s) => s.unlockHubSlot)
 
-  const batteries = useMemo(() => inventory.filter((item) => item.type === 'battery'), [inventory])
-  const filledSlots = batteries.length
+  const batteryCapacityTotal = useMemo(
+    () =>
+      activeBatteries.reduce((sum, b) => {
+        const def = BATTERY_DEF_BY_TYPE_ID[b.type]
+        return sum + (def?.capacity ?? 0)
+      }, 0),
+    [activeBatteries],
+  )
+
+  const sharedFillPct =
+    batteryCapacityTotal > 0 ? Math.min(100, Math.round((currentEnergy / batteryCapacityTotal) * 100)) : 0
+
+  const batteriesDisplay = useMemo(
+    () =>
+      activeBatteries.map((b) => {
+        const def = BATTERY_DEF_BY_TYPE_ID[b.type]
+        return {
+          id: b.id,
+          name: def?.name ?? 'Batarya',
+          capacityKwh: def?.capacity ?? 0,
+          chargePct: sharedFillPct,
+        }
+      }),
+    [activeBatteries, sharedFillPct],
+  )
+
+  const filledSlots = batteriesDisplay.length
 
   const [selectedBatteryId, setSelectedBatteryId] = useState(null)
   const [emptySlotModalIndex, setEmptySlotModalIndex] = useState(null)
-  const [selectedEquipmentKey, setSelectedEquipmentKey] = useState(null)
+  const [selectedBatteryKey, setSelectedBatteryKey] = useState(null)
   const [lockedSlotModalIndex, setLockedSlotModalIndex] = useState(null)
-  const [uiUnlockedSlots, setUiUnlockedSlots] = useState(unlockedSlots)
-  const unlockPrice = 1200
+  const [purchaseError, setPurchaseError] = useState('')
+  const [unlockError, setUnlockError] = useState('')
+
+  const unlockPrice = HUB_SLOT_UNLOCK_COST
   const canAffordUnlock = coins >= unlockPrice
 
-  const batteryOptions = useMemo(
-    () =>
-      SHOP_PRODUCTS.filter((product) => product.category === 'battery')
-        .map((product) => {
-          const isLocked = Boolean(product.requiredResearch && !research?.[product.requiredResearch])
-          return {
-            key: product.id,
-            name: product.name,
-            sub: `Depolama ${product.capacityKwh} kWh`,
-            price: `${product.price.toLocaleString('tr-TR')} Coin`,
-            isLocked,
-          }
-        })
-        .filter((product) => !product.isLocked),
-    [research],
-  )
+  const batteryOptions = useMemo(() => {
+    const items = []
+    for (const [gameKey, def] of Object.entries(BATTERIES)) {
+      if (!lockBattery(def, level, unlockedResearches)) continue
+      items.push({
+        gameKey,
+        id: def.id,
+        name: def.name,
+        sub: `Depolama ${def.capacity} kWh`,
+        price: `${def.price.toLocaleString('tr-TR')} Coin`,
+        rawPrice: def.price,
+      })
+    }
+    return items
+  }, [level, unlockedResearches])
 
   const selectedBattery = useMemo(
-    () => batteries.find((item) => item.id === selectedBatteryId) || null,
-    [batteries, selectedBatteryId],
+    () => batteriesDisplay.find((item) => item.id === selectedBatteryId) || null,
+    [batteriesDisplay, selectedBatteryId],
   )
+
   const selectedEquipment = useMemo(
-    () => batteryOptions.find((item) => item.key === selectedEquipmentKey) || null,
-    [batteryOptions, selectedEquipmentKey],
+    () => batteryOptions.find((item) => item.id === selectedBatteryKey) ?? null,
+    [batteryOptions, selectedBatteryKey],
   )
 
   const slots = useMemo(
-    () => Array.from({ length: maxSlots }, (_, index) => batteries[index] || null),
-    [batteries, maxSlots],
+    () => Array.from({ length: maxSlots }, (_, index) => batteriesDisplay[index] || null),
+    [batteriesDisplay, maxSlots],
   )
 
   const openEmptySlotPurchaseModal = (slotIndex) => {
-    const firstAvailable = batteryOptions[0]
+    if (slotIndex >= unlockedSlots) return
+    if (activeBatteries.length >= unlockedSlots) return
+    const first = batteryOptions[0]
     setEmptySlotModalIndex(slotIndex)
-    setSelectedEquipmentKey(firstAvailable?.key ?? null)
+    setSelectedBatteryKey(first?.id ?? null)
+    setPurchaseError('')
   }
 
   const closeEmptySlotPurchaseModal = () => {
     setEmptySlotModalIndex(null)
+    setSelectedBatteryKey(null)
+    setPurchaseError('')
+  }
+
+  const handleBatteryPurchase = () => {
+    if (!selectedEquipment) return
+    if (activeBatteries.length >= unlockedSlots) {
+      setPurchaseError('Önce yeni yuva aç.')
+      return
+    }
+    const result = buyItem('battery', selectedEquipment.gameKey)
+    if (!result.ok) {
+      setPurchaseError(result.reason || 'Satın alma başarısız.')
+      return
+    }
+    closeEmptySlotPurchaseModal()
   }
 
   return (
@@ -84,9 +140,26 @@ function StorageAreaScreen() {
             <div className="flex items-center justify-between mb-3">
               <h1 className="font-black text-2xl">Depolama Alanı</h1>
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-3 py-1 text-xs font-black">
-                {filledSlots}/{uiUnlockedSlots} Dolu - Toplam {maxSlots} Yuva
+                {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
+            <p className="text-xs font-bold text-shade-2 mb-3">
+              Toplam depolama:{' '}
+              <span className="font-black text-shade">
+                {batteryCapacityTotal > 0 ? `${batteryCapacityTotal.toLocaleString('tr-TR')} kWh` : '0 kWh'}
+              </span>
+              {' · '}
+              Dolu:{' '}
+              <span className="font-black text-shade">
+                {batteryCapacityTotal > 0
+                  ? `${Math.min(currentEnergy, batteryCapacityTotal).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} kWh`
+                  : '—'}
+              </span>
+              {' · '}
+              Paylaşımlı doluluk:{' '}
+              <span className="font-black text-shade">{batteryCapacityTotal > 0 ? `%${sharedFillPct}` : '—'}</span>
+              {batteryCapacityTotal === 0 && ' (henüz batarya yok)'}
+            </p>
 
             <div
               className="rounded-3xl border-4 border-slate-900 bg-background p-4 shadow-[6px_6px_0px_0px_var(--shade)]"
@@ -97,14 +170,17 @@ function StorageAreaScreen() {
             >
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 {slots.map((item, slotIndex) => {
-                  const isLocked = slotIndex >= uiUnlockedSlots
+                  const isLocked = slotIndex >= unlockedSlots
 
                   if (isLocked) {
                     return (
                       <motion.button
                         key={`locked-${slotIndex}`}
                         type="button"
-                        onClick={() => setLockedSlotModalIndex(slotIndex)}
+                        onClick={() => {
+                          setUnlockError('')
+                          setLockedSlotModalIndex(slotIndex)
+                        }}
                         whileHover={{ y: -2, scale: 1.01 }}
                         whileTap={{ y: 0, scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 360, damping: 26 }}
@@ -136,7 +212,8 @@ function StorageAreaScreen() {
                           </div>
                         </div>
                         <p className="font-black text-lg leading-tight">{item.name}</p>
-                        <p className="font-black text-sm text-shade-2 mt-1">%{item.chargePct ?? 0} Full</p>
+                        <p className="font-black text-sm text-shade-2 mt-1">{item.capacityKwh} kWh</p>
+                        <p className="font-black text-xs text-shade-soft mt-1">Depo doluluğu %{item.chargePct}</p>
                       </motion.button>
                     )
                   }
@@ -171,17 +248,19 @@ function StorageAreaScreen() {
       >
         {selectedBattery && (
           <div className="space-y-2 font-bold text-shade">
-            <p className="text-sm text-shade-2">Tip: Batarya</p>
-            <p className="text-base">Doluluk: %{selectedBattery.chargePct ?? 0}</p>
-            <p className="text-sm text-shade-soft">Yükseltme ve detay aksiyonları yakında burada olacak.</p>
+            <p className="text-sm text-shade-2">Kapasite: {selectedBattery.capacityKwh} kWh</p>
+            <p className="text-base">Paylaşımlı depo doluluğu: %{selectedBattery.chargePct}</p>
           </div>
         )}
       </Modal>
 
       <Modal
         isOpen={lockedSlotModalIndex !== null}
-        onClose={() => setLockedSlotModalIndex(null)}
-        title="Kilit Açma Satın Alımı"
+        onClose={() => {
+          setLockedSlotModalIndex(null)
+          setUnlockError('')
+        }}
+        title="Kilit Açma"
       >
         <div className="space-y-4 font-bold text-shade">
           <p className="text-sm text-shade-2">
@@ -189,34 +268,40 @@ function StorageAreaScreen() {
           </p>
           <div className="rounded-2xl border-3 border-slate-900 bg-breeze/50 p-3">
             <p className="text-xs text-shade-soft">Açma Bedeli</p>
-            <p className="text-xl font-black">{unlockPrice} Coin</p>
+            <p className="text-xl font-black">{unlockPrice.toLocaleString('tr-TR')} Coin</p>
           </div>
           <div className="rounded-2xl border-3 border-slate-900 bg-background p-3">
             <p className="text-xs text-shade-soft">Mevcut Coin</p>
-            <p className="text-xl font-black">{coins} Coin</p>
+            <p className="text-xl font-black">{coins.toLocaleString('tr-TR')} Coin</p>
           </div>
           {!canAffordUnlock && (
-            <p className="text-xs text-rose-700">Yeterli coin yok. Bu yuvayı açmak için daha fazla coin gerekli.</p>
+            <p className="text-xs text-rose-700">Yeterli coin yok.</p>
           )}
-          <p className="text-xs text-shade-soft">
-            Bu akış sadece UI gösterimidir. Satın alma ve coin düşümü gerçek oyun verisini etkilemez.
-          </p>
+          {unlockError && <p className="text-xs text-rose-700">{unlockError}</p>}
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               type="button"
               onClick={() => {
                 if (!canAffordUnlock) return
-                setUiUnlockedSlots((prev) => Math.min(prev + 1, maxSlots))
+                const result = unlockHubSlot()
+                if (!result.ok) {
+                  setUnlockError(result.reason || 'Yuva açılamadı.')
+                  return
+                }
                 setLockedSlotModalIndex(null)
+                setUnlockError('')
               }}
               disabled={!canAffordUnlock}
               className="flex-1 rounded-2xl border-4 border-slate-900 bg-sprout px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_var(--shade)]"
             >
-              {unlockPrice} Coin Öde ve Aç
+              {unlockPrice.toLocaleString('tr-TR')} Coin Öde ve Aç
             </button>
             <button
               type="button"
-              onClick={() => setLockedSlotModalIndex(null)}
+              onClick={() => {
+                setLockedSlotModalIndex(null)
+                setUnlockError('')
+              }}
               className="flex-1 rounded-2xl border-4 border-slate-900 bg-background px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none"
             >
               Vazgeç
@@ -228,23 +313,21 @@ function StorageAreaScreen() {
       <Modal
         isOpen={emptySlotModalIndex !== null}
         onClose={closeEmptySlotPurchaseModal}
-        title="Depolama Ekipmanı Satın Al"
+        title="Batarya Satın Al"
       >
         <div className="space-y-4 font-bold text-shade">
           <p className="text-sm text-shade-2">
-            {emptySlotModalIndex !== null
-              ? `${emptySlotModalIndex + 1}. boş yuva için depolama ekipmanı seç`
-              : 'Boş yuva için depolama ekipmanı seç'}
+            {emptySlotModalIndex !== null ? `${emptySlotModalIndex + 1}. boş yuva için batarya seç` : 'Batarya seç'}
           </p>
 
           <div className="grid grid-cols-1 gap-2">
             {batteryOptions.map((option) => {
-              const isSelected = selectedEquipmentKey === option.key
+              const isSelected = selectedBatteryKey === option.id
               return (
                 <motion.button
-                  key={option.key}
+                  key={option.id}
                   type="button"
-                  onClick={() => setSelectedEquipmentKey(option.key)}
+                  onClick={() => setSelectedBatteryKey(option.id)}
                   whileHover={{ y: -2, scale: 1.01 }}
                   whileTap={{ y: 0, scale: 0.98 }}
                   className={`rounded-2xl border-4 p-3 text-left shadow-[4px_4px_0px_0px_var(--shade)] transition-colors ${
@@ -266,26 +349,33 @@ function StorageAreaScreen() {
             })}
             {batteryOptions.length === 0 && (
               <div className="rounded-2xl border-4 border-slate-900 bg-background p-3 text-center">
-                <p className="text-sm font-black">Henüz secilebilir depolama ekipmani yok</p>
-                <p className="text-xs text-shade-soft mt-1">Arastirma acildikca burada bataryalar gorunecek.</p>
+                <p className="text-sm font-black">Seçilebilir batarya yok</p>
+                <p className="text-xs text-shade-soft mt-1">
+                  Seviye veya araştırma şartlarını sağla (fiyatlar{' '}
+                  <span className="font-black">gameData.js</span>).
+                </p>
               </div>
             )}
           </div>
 
           <div className="rounded-2xl border-3 border-slate-900 bg-breeze/40 p-3">
-            <p className="text-xs text-shade-soft">Seçilen Ekipman</p>
-            <p className="text-base font-black">{selectedEquipment ? `${selectedEquipment.name} - ${selectedEquipment.price}` : '-'}</p>
+            <p className="text-xs text-shade-soft">Seçilen Batarya</p>
+            <p className="text-base font-black">
+              {selectedEquipment ? `${selectedEquipment.name} - ${selectedEquipment.price}` : '-'}
+            </p>
           </div>
-          <p className="text-xs text-shade-soft">Bu modal sadece UI tasarımıdır, gerçek satın alma işlemi çalışmaz.</p>
+
+          {purchaseError && <p className="text-xs text-rose-700">{purchaseError}</p>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
+              onClick={handleBatteryPurchase}
               disabled={!selectedEquipment}
               className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
             >
               <ShoppingCart className="w-4 h-4" />
-              Seçili Ekipmanı Satın Al
+              Satın Al
             </button>
             <button
               type="button"
