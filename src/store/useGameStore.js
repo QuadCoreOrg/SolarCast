@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 
-const useGameStore = create((set, get) => ({
+const useGameStore = create((set) => ({
+  currentScreen: 'how_to',
+  setScreen: (screen) => set({ currentScreen: screen }),
+
   energy: 100,
   coins: 0,
   level: 1,

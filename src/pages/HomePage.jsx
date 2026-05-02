@@ -1,23 +1,30 @@
-import Header from "../components/landing/Header";
-import HeroSection from "../components/landing/HeroSection";
-import ProblemSolutionSection from "../components/landing/ProblemSolutionSection";
-import HowItWorksSection from "../components/landing/HowItWorksSection";
-import FeaturesSection from "../components/landing/FeaturesSection";
-import ContactSection from "../components/landing/ContactSection";
-import FooterSection from "../components/landing/FooterSection";
+import { useNavigate } from 'react-router-dom'
+import Header from '../components/landing/Header'
+import HeroSection from '../components/landing/HeroSection'
+import ProblemSolutionSection from '../components/landing/ProblemSolutionSection'
+import HowItWorksSection from '../components/landing/HowItWorksSection'
+import FeaturesSection from '../components/landing/FeaturesSection'
+import ContactSection from '../components/landing/ContactSection'
+import FooterSection from '../components/landing/FooterSection'
 
-function HomePage({ onPlayClick }) {
+function HomePage() {
+  const navigate = useNavigate()
+
+  const handlePlayClick = () => {
+    navigate('/play')
+  }
+
   return (
     <div className="min-h-screen bg-background font-['Nunito'] text-shade">
-      <Header onPlayClick={onPlayClick} />
-      <HeroSection onPlayClick={onPlayClick} />
+      <Header onPlayClick={handlePlayClick} />
+      <HeroSection onPlayClick={handlePlayClick} />
       <ProblemSolutionSection />
       <HowItWorksSection />
       <FeaturesSection />
       <ContactSection />
-      <FooterSection onPlayClick={onPlayClick} />
+      <FooterSection onPlayClick={handlePlayClick} />
     </div>
-  );
+  )
 }
 
-export default HomePage;
+export default HomePage
