@@ -38,25 +38,25 @@ Bu doküman, SolarCast projesinin ortak UI bileşenlerini `design-system.md` ve 
 
 ### 5. StatCard Component (`<StatCard />`)
 
-- [ ] `<Card variant="dashboard" />` kullanılacak ama padding daha küçük olacak (`p-3` veya `p-4`).
-- [ ] Lucide React ikonu (örn: Coin için `Coins`, Enerji için `Zap`), etiket (örn: "Coins") ve değer (`font-black text-xl`) yan yana veya alt alta hizalanacak.
+- [x] `<Card variant="dashboard" />` kullanılacak ama padding daha küçük olacak (`p-3` veya `p-4`).
+- [x] Lucide React ikonu (örn: Coin için `Coins`, Enerji için `Zap`), etiket (örn: "Coins") ve değer (`font-black text-xl`) yan yana veya alt alta hizalanacak.
 
 ### 6. EnergyBar Component (`<EnergyBar />`)
 
-- [ ] `<ProgressBar />` bileşeninin özelleştirilmiş hali.
-- [ ] Fill rengi kesinlikle `bg-mint-green` olacak.
-- [ ] İçinde veya üstünde anlık enerjiyi metin olarak gösterecek (örn: "450 / 1000 ⚡").
+- [x] `<ProgressBar />` bileşeninin özelleştirilmiş hali.
+- [x] Fill rengi kesinlikle `bg-mint-green` olacak.
+- [x] İçinde veya üstünde anlık enerjiyi metin olarak gösterecek (örn: "450 / 1000 ⚡").
 
 ### 7. InventoryItem Component (`<InventoryItem />`)
 
-- [ ] `<Card variant="dashboard" />` içinde çalışacak.
-- [ ] Sol tarafta görsel/ikon, ortada isim ve üretim gücü (örn: "Solar Panel Lv.1 - +5⚡/sn").
-- [ ] Sağ tarafta `<Button variant="primary">Satın Al (100🪙)</Button>`.
+- [x] `<Card variant="dashboard" />` içinde çalışacak.
+- [x] Sol tarafta görsel/ikon, ortada isim ve üretim gücü (örn: "Solar Panel Lv.1 - +5⚡/sn").
+- [x] Sağ tarafta `<Button variant="primary">Satın Al (100🪙)</Button>`.
 
 ### 8. GoalCard Component (`<GoalCard />`)
 
-- [ ] Günlük hedefleri (Daily Goals) gösterecek. `<Card variant="accent" />` kullanılacak.
-- [ ] Hedef başlığı, `<ProgressBar />` (hedef ilerlemesi) ve ödül bilgisi (`<Badge>+50 XP</Badge>`) içerecek.
+- [x] Günlük hedefleri (Daily Goals) gösterecek. `<Card variant="accent" />` kullanılacak.
+- [x] Hedef başlığı, `<ProgressBar />` (hedef ilerlemesi) ve ödül bilgisi (`<Badge>+50 XP</Badge>`) içerecek.
 
 ### 9. Toast / Alert Component (`<Toast />`)
 

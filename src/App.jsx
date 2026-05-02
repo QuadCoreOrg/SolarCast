@@ -5,7 +5,11 @@ import Button from "./components/Button";
 import Card from "./components/Card";
 import Badge from "./components/Badge";
 import ProgressBar from "./components/ProgressBar";
-import { Sun, Battery, Settings } from "lucide-react";
+import StatCard from "./components/StatCard";
+import EnergyBar from "./components/EnergyBar";
+import InventoryItem from "./components/InventoryItem";
+import GoalCard from "./components/GoalCard";
+import { Sun, Battery, Settings, Coins, Zap, Star, Trophy, SolarPanel } from "lucide-react";
 
 function App() {
   const { 
@@ -182,6 +186,72 @@ function App() {
             <ProgressBar value={60} max={100} color="yellow" showLabel />
             <ProgressBar value={45} max={100} color="peach" showLabel />
             <ProgressBar value={90} max={100} color="blue" showLabel />
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">StatCard Variants</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <StatCard icon={Coins} label="Coins" value="1,250" color="yellow" />
+            <StatCard icon={Zap} label="Energy" value="85" color="mint" />
+            <StatCard icon={Star} label="Level" value="12" color="peach" />
+            <StatCard icon={Trophy} label="Rank" value="#5" color="blue" />
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">EnergyBar</h2>
+          <div className="flex flex-col gap-4">
+            <EnergyBar current={450} max={1000} />
+            <EnergyBar current={75} max={100} />
+            <EnergyBar current={1200} max={2000} />
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">InventoryItem</h2>
+          <div className="flex flex-col gap-4">
+            <InventoryItem 
+              icon={Sun} 
+              name="Solar Panel Lv.1" 
+              detail="+5⚡/sn" 
+              price={100}
+              onBuy={() => alert('Bought Solar Panel!')}
+            />
+            <InventoryItem 
+              icon={Battery} 
+              name="Battery Lv.1" 
+              detail="+20 capacity" 
+              price={150}
+              onBuy={() => alert('Bought Battery!')}
+            />
+            <InventoryItem 
+              icon={SolarPanel} 
+              name="Upgrade" 
+              detail="x2 efficiency" 
+              price={500}
+              disabled
+            />
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">GoalCard</h2>
+          <div className="flex flex-col gap-4">
+            <GoalCard 
+              title="Daily Energy Goal" 
+              current={65} 
+              goal={100} 
+              reward={50}
+              rewardType="XP"
+            />
+            <GoalCard 
+              title="Weekly Challenge" 
+              current={100} 
+              goal={100} 
+              reward={200}
+              rewardType="Coins"
+            />
           </div>
         </div>
 
