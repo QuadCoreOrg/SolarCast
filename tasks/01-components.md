@@ -60,10 +60,10 @@ Bu doküman, SolarCast projesinin ortak UI bileşenlerini `design-system.md` ve 
 
 ### 9. Toast / Alert Component (`<Toast />`)
 
-- [ ] Oyun içi bildirimler (örn: "Hedef Tamamlandı!", "+100 Altın") için kullanılacak.
-- [ ] Ekranın altına veya üstüne `absolute/fixed` konumlandırılacak.
-- [ ] Framer Motion: `initial={{ opacity: 0, y: 50, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring" }}`.
-- [ ] Kalın kenarlıklı ve genelde `bg-sunny-yellow` veya `bg-mint-green` renklerinde olacak.
+- [x] Oyun içi bildirimler (örn: "Hedef Tamamlandı!", "+100 Altın") için kullanılacak.
+- [x] Ekranın altına veya üstüne `absolute/fixed` konumlandırılacak.
+- [x] Framer Motion: `initial={{ opacity: 0, y: 50, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring" }}`.
+- [x] Kalın kenarlıklı ve genelde `bg-sunny-yellow` veya `bg-mint-green` renklerinde olacak.
 
 ---
 

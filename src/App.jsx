@@ -9,6 +9,8 @@ import StatCard from "./components/StatCard";
 import EnergyBar from "./components/EnergyBar";
 import InventoryItem from "./components/InventoryItem";
 import GoalCard from "./components/GoalCard";
+import ToastContainer from "./components/ToastContainer";
+import useToastStore from "./hooks/useToast";
 import { Sun, Battery, Settings, Coins, Zap, Star, Trophy, SolarPanel } from "lucide-react";
 
 function App() {
@@ -19,6 +21,8 @@ function App() {
     addCoins, addExperience,
     updateProgress
   } = useGameStore();
+
+  const { addToast } = useToastStore();
 
   const handleGenerateEnergy = () => {
     addEnergy(10);
@@ -255,7 +259,41 @@ function App() {
           </div>
         </div>
 
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">Toast / Alert</h2>
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-3 justify-center">
+              <span className="font-bold text-sm">Bottom Center:</span>
+              <Button variant="primary" onClick={() => addToast('+100 Coins!', 'success', 3000, 'bottom-center')}>
+                Success
+              </Button>
+              <Button variant="secondary" onClick={() => addToast('Goal Done!', 'warning', 3000, 'bottom-center')}>
+                Warning
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <span className="font-bold text-sm">Top Center:</span>
+              <Button variant="primary" onClick={() => addToast('+50 XP', 'info', 3000, 'top-center')}>
+                Info
+              </Button>
+              <Button variant="secondary" onClick={() => addToast('Error!', 'error', 3000, 'top-center')}>
+                Error
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <span className="font-bold text-sm">Top Right:</span>
+              <Button variant="peach" onClick={() => addToast('New Item!', 'success', 3000, 'top-right')}>
+                Notification
+              </Button>
+              <Button variant="primary" onClick={() => addToast('Level Up!', 'success', 3000, 'top-right')}>
+                Achievement
+              </Button>
+            </div>
+          </div>
+        </div>
+
       </div>
+      <ToastContainer />
     </div>
   );
 }
