@@ -5,7 +5,7 @@ const tabs = [
   { id: 'power_center', label: 'Güç Merkezi', icon: Zap, bg: 'bg-breeze-deep', iconFill: true },
   { id: 'market', label: 'Mağaza', icon: Store, bg: 'bg-sprout' },
   { id: 'research', label: 'Araştırma', icon: Compass, bg: 'bg-blossom' },
-  { id: 'settings', label: 'Ayarlar', icon: Settings, bg: 'bg-sunlit-deep', disabled: true },
+  { id: 'settings', label: 'Ayarlar', icon: Settings, bg: 'bg-sunlit-deep' },
 ]
 
 function TabBar({ activeScreen = 'dashboard', onChange }) {

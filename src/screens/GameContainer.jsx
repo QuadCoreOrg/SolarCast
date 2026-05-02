@@ -6,6 +6,7 @@ import DashboardScreen from './DashboardScreen'
 import MarketScreen from './MarketScreen'
 import PowerCenterScreen from './PowerCenterScreen'
 import ExploreScreen from './ExploreScreen'
+import SettingsScreen from './SettingsScreen'
 
 function GameContainer() {
   const currentScreen = useGameStore((state) => state.currentScreen)
@@ -30,6 +31,9 @@ function GameContainer() {
         )}
         {currentScreen === 'research' && (
           <ExploreScreen key="research" />
+        )}
+        {currentScreen === 'settings' && (
+          <SettingsScreen key="settings" />
         )}
       </AnimatePresence>
     </div>
