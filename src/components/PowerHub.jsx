@@ -2,10 +2,11 @@ import { motion } from 'framer-motion'
 import { BatteryCharging, CirclePlus, Lock, SunMedium } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
 
-function PowerHub({ openUpgradeModal, openMarketModal, onEmptySlotClick }) {
+function PowerHub({ openUpgradeModal, openMarketModal, onLockedSlotClick, unlockedSlots: unlockedSlotsProp }) {
   const inventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
-  const unlockedSlots = useGameStore((s) => s.unlockedSlots)
+  const storeUnlockedSlots = useGameStore((s) => s.unlockedSlots)
+  const unlockedSlots = unlockedSlotsProp ?? storeUnlockedSlots
 
   const slots = Array.from({ length: maxSlots }, (_, index) => inventory[index] || null)
 
@@ -26,7 +27,7 @@ function PowerHub({ openUpgradeModal, openMarketModal, onEmptySlotClick }) {
               <motion.button
                 key={`locked-${slotIndex}`}
                 type="button"
-                onClick={openMarketModal}
+                onClick={() => onLockedSlotClick?.(slotIndex)}
                 whileHover={{ y: -2, scale: 1.01 }}
                 whileTap={{ y: 0, scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 360, damping: 26 }}
@@ -36,7 +37,7 @@ function PowerHub({ openUpgradeModal, openMarketModal, onEmptySlotClick }) {
                   <Lock className="w-6 h-6" strokeWidth={2.25} />
                 </div>
                 <p className="font-black text-base text-shade-2">Kilitli Yuva</p>
-                <p className="font-bold text-xs text-shade-soft mt-1">Açmak için mağazaya git</p>
+                <p className="font-bold text-xs text-shade-soft mt-1">Açmak için kilidi kaldır</p>
               </motion.button>
             )
           }
