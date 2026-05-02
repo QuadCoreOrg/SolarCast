@@ -1,13 +1,13 @@
-export const GITHUB_REPO = "https://github.com/emirtopaloglu/solarcast";
+export const GITHUB_REPO = "https://github.com/quadcoreorg/solarcast";
 
 export const LINKEDIN = {
-  emir: "https://linkedin.com/in/emirtopaloglu",
-  recep: "https://linkedin.com/in/receponur",
-  emiralp: "https://linkedin.com/in/emiralpyusuf",
+  emir: "https://www.linkedin.com/in/emirtopaloglu/",
+  recep: "https://www.linkedin.com/in/recep-onur-demiray-a32a79334",
+  yusuf: "https://www.linkedin.com/in/yusuf-emre-%C3%B6z%C3%BCg%C3%BCzel-8b732538a/",
 };
 
 export const TEAM = [
   { name: "Emir Topaloğlu", linkedin: LINKEDIN.emir },
-  { name: "Recep Onur", linkedin: LINKEDIN.recep },
-  { name: "Emiralp Yusuf Alp", linkedin: LINKEDIN.emiralp },
+  { name: "Recep Onur Demiray", linkedin: LINKEDIN.recep },
+  { name: "Yusuf Emre Özügüzel", linkedin: LINKEDIN.yusuf },
 ];
