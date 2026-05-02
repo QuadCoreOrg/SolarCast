@@ -66,7 +66,7 @@ function TurkeyMap({ onSelectCity, selectedCity }) {
                               cursor: 'pointer',
                             },
                             hover: {
-                              fill: '#FF8FB3',
+                              fill: isSelected ? '#F6C944' : '#FF8FB3',
                               stroke: '#2A2A33',
                               strokeWidth: 1.5,
                               outline: 'none',
