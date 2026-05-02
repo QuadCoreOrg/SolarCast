@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
-import { BatteryCharging, Compass, Lock, ShoppingCart, SunMedium } from 'lucide-react'
+import { BatteryCharging, Compass, FlaskConical, Lock, ShoppingCart, SunMedium } from 'lucide-react'
 import Modal from '../components/Modal'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
@@ -81,6 +81,27 @@ function MarketScreen() {
     [level, unlockedResearches],
   )
 
+  const researchProducts = useMemo(
+    () =>
+      Object.entries(RESEARCHES).map(([gameKey, def]) => {
+        const alreadyOwned = unlockedResearches.includes(def.id)
+        const needsLevel = def.reqLevel != null && level < def.reqLevel
+        return {
+          id: def.id,
+          category: 'research',
+          gameKey,
+          name: def.name,
+          price: def.price,
+          alreadyOwned,
+          isLocked: needsLevel,
+          reqLevelLabel: def.reqLevel != null ? `En az Lv.${def.reqLevel}` : null,
+          description:
+            'Laboratuvar lisansı: ilgili panel ve batarya teknolojilerini Pazarda kullanılabilir hale getirir.',
+        }
+      }),
+    [level, unlockedResearches],
+  )
+
   const handleOpenProduct = (product) => {
     setBuyError('')
     setSelectedProduct(product)
@@ -88,8 +109,13 @@ function MarketScreen() {
 
   const handlePurchase = () => {
     if (!selectedProduct || selectedProduct.isLocked) return
-    const category = selectedProduct.category === 'panel' ? 'panel' : 'battery'
-    const result = buyItem(category, selectedProduct.gameKey)
+    let result
+    if (selectedProduct.category === 'research') {
+      result = buyItem('research', selectedProduct.gameKey)
+    } else {
+      const category = selectedProduct.category === 'panel' ? 'panel' : 'battery'
+      result = buyItem(category, selectedProduct.gameKey)
+    }
     if (!result.ok) {
       setBuyError(result.reason || 'Satın alma başarısız.')
       return
@@ -112,8 +138,8 @@ function MarketScreen() {
         <div className="shrink-0 flex items-center justify-between rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
           <div>
             <h1 className="font-black text-2xl">Mağaza</h1>
-            <p className="font-bold text-sm text-shade-2">
-              Ürün listesi tek kaynak:{' '}
+            <p className="font-bold text-sm text-shade-2 leading-relaxed">
+              Paneller, depolar ve araştırma fiyatları tek kaynak:{' '}
               <span className="font-black">gameData.js</span>
             </p>
           </div>
@@ -179,6 +205,63 @@ function MarketScreen() {
           </section>
 
           <section className="rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
+            <h2 className="font-black text-xl mb-3">Araştırma Lisansları</h2>
+            <p className="font-bold text-xs text-shade-2 mb-3">
+              Seviye uygun olduğunda Coin ile satın al; aynı lisansları Araştırma sekmesinden de alabilirsin.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {researchProducts.map((product) => (
+                <motion.button
+                  key={product.id}
+                  type="button"
+                  onClick={() => handleOpenProduct(product)}
+                  whileHover={{ y: -3, scale: 1.01 }}
+                  whileTap={{ y: 0, scale: 0.98 }}
+                  className={`relative overflow-hidden rounded-2xl border-4 p-4 text-left shadow-[4px_4px_0px_0px_var(--shade)] transition-colors cursor-pointer ${
+                    product.alreadyOwned
+                      ? 'border-slate-900 bg-sprout/45'
+                      : product.isLocked
+                        ? 'border-slate-900 bg-border/80'
+                        : 'border-slate-900 bg-blossom'
+                  }`}
+                >
+                  {(product.isLocked || product.alreadyOwned) && (
+                    <div className="absolute inset-0 bg-shade/15 pointer-events-none" />
+                  )}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center">
+                      <FlaskConical className="w-6 h-6" strokeWidth={2.25} />
+                    </div>
+                    {product.alreadyOwned ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border-3 border-slate-900 bg-sprout-deep px-2.5 py-1 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)]">
+                        Aktif
+                      </span>
+                    ) : (
+                      product.isLocked && (
+                        <span className="inline-flex items-center gap-1 rounded-full border-3 border-slate-900 bg-blossom px-2.5 py-1 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)]">
+                          <Lock className="w-3.5 h-3.5" />
+                          Kilitli
+                        </span>
+                      )
+                    )}
+                  </div>
+                  <p className="font-black text-lg leading-tight">{product.name}</p>
+                  <p className="font-bold text-sm text-shade-2 mt-1 leading-snug">Laboratuvar lisansı</p>
+                  <p className="font-black text-base mt-3">
+                    {product.price.toLocaleString('tr-TR')} Coin
+                  </p>
+                  {product.isLocked && product.reqLevelLabel && (
+                    <div className="mt-3 rounded-lg border-2 border-slate-900 bg-background/95 px-2.5 py-1.5">
+                      <p className="text-xs font-black text-shade">Kilit Nedeni</p>
+                      <p className="text-[11px] font-bold text-shade-2">{product.reqLevelLabel}</p>
+                    </div>
+                  )}
+                </motion.button>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
             <h2 className="font-black text-xl mb-3">Depolama Üniteleri</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {batteryProducts.map((product) => (
@@ -235,22 +318,37 @@ function MarketScreen() {
         </div>
       </motion.main>
 
-      <Modal isOpen={Boolean(selectedProduct)} onClose={() => setSelectedProduct(null)} title={selectedProduct?.name}>
+      <Modal
+        isOpen={Boolean(selectedProduct)}
+        onClose={() => {
+          setSelectedProduct(null)
+          setBuyError('')
+        }}
+        title={selectedProduct?.name}
+      >
         {selectedProduct && (
           <div className="space-y-3">
             <p className="font-bold text-sm text-shade-2">{selectedProduct.description}</p>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
               <p className="font-black text-sm text-shade-2">Kategori</p>
               <p className="font-black">
-                {selectedProduct.category === 'panel' ? 'Güneş Paneli' : 'Depolama Ünitesi'}
+                {selectedProduct.category === 'panel'
+                  ? 'Güneş Paneli'
+                  : selectedProduct.category === 'battery'
+                    ? 'Depolama Ünitesi'
+                    : 'Araştırma Lisansı'}
               </p>
             </div>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
-              <p className="font-black text-sm text-shade-2">Performans</p>
+              <p className="font-black text-sm text-shade-2">
+                {selectedProduct.category === 'research' ? 'Koşullar' : 'Performans'}
+              </p>
               <p className="font-black">
                 {selectedProduct.category === 'panel'
                   ? `Güç: +${selectedProduct.displayOutput}`
-                  : `Kapasite: ${selectedProduct.capacityKwh} kWh`}
+                  : selectedProduct.category === 'battery'
+                    ? `Kapasite: ${selectedProduct.capacityKwh} kWh`
+                    : selectedProduct.reqLevelLabel ?? 'Uygun seviyede Coin ile satın alınır.'}
               </p>
             </div>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
@@ -260,7 +358,11 @@ function MarketScreen() {
 
             {buyError && <p className="text-xs font-bold text-rose-700">{buyError}</p>}
 
-            {selectedProduct.isLocked ? (
+            {selectedProduct.category === 'research' && unlockedResearches.includes(selectedProduct.id) ? (
+              <div className="rounded-xl border-3 border-slate-900 bg-sprout px-3 py-3 font-black text-sm text-center">
+                Bu araştırma lisansı zaten aktif.
+              </div>
+            ) : selectedProduct.isLocked ? (
               <div className="space-y-2">
                 <div className="rounded-xl border-3 border-slate-900 bg-blossom p-3 space-y-1">
                   <p className="font-black text-sm text-shade-2">Durum</p>

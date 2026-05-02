@@ -23,12 +23,22 @@ export const XP_REWARDS = {
   researchBuyBase: 16,
   researchBuyPriceQuotient: 100,
 
-  exploreResearchUnlock: 22,
-
   hubSlotUnlock: 18,
 
   /** Panel temizliği (“performans yükseltmesi”) */
   panelClean: 7,
+
+  /** Hedef tipe yükseltme (yeni satın alma kadar değil) */
+  panelUpgradeTo: {
+    MEGA: 11,
+    ULTRA: 16,
+    default: 8,
+  },
+  batteryUpgradeTo: {
+    HIGH: 10,
+    MEGA: 15,
+    default: 7,
+  },
 }
 
 export function xpForEnergySold(kwhSold) {
@@ -49,4 +59,16 @@ export function xpForBatteryPurchase(batteryKey) {
 export function xpForResearchPurchase(priceCoins) {
   const p = typeof priceCoins === 'number' ? priceCoins : 0
   return XP_REWARDS.researchBuyBase + Math.max(0, Math.floor(p / XP_REWARDS.researchBuyPriceQuotient))
+}
+
+export function xpForPanelUpgradeTo(nextPanelKey) {
+  return (
+    XP_REWARDS.panelUpgradeTo[nextPanelKey] ?? XP_REWARDS.panelUpgradeTo.default
+  )
+}
+
+export function xpForBatteryUpgradeTo(nextBatteryKey) {
+  return (
+    XP_REWARDS.batteryUpgradeTo[nextBatteryKey] ?? XP_REWARDS.batteryUpgradeTo.default
+  )
 }

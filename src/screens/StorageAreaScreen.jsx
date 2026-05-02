@@ -2,8 +2,13 @@ import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { BatteryCharging, CirclePlus, ShoppingCart } from 'lucide-react'
 import { BATTERIES, BATTERY_DEF_BY_TYPE_ID, HUB_SLOT_UNLOCK_COST } from '../constants/gameData'
+import {
+  getBatteryGameKeyFromTypeId,
+  getBatteryUpgradeProjection,
+} from '../constants/equipmentUpgrade'
 import useGameStore from '../store/useGameStore'
 import { allocateSequentialBatteryDisplay } from '../utils/sequentialBatteryAllocation'
+import EquipmentUpgradeSection from '../components/EquipmentUpgradeSection'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import TabBar from '../components/TabBar'
@@ -26,6 +31,9 @@ function StorageAreaScreen() {
   const currentEnergy = useGameStore((s) => s.currentEnergy)
   const buyItem = useGameStore((s) => s.buyItem)
   const unlockHubSlot = useGameStore((s) => s.unlockHubSlot)
+  const upgradeBattery = useGameStore((s) => s.upgradeBattery)
+
+  const [batteryUpgradeError, setBatteryUpgradeError] = useState('')
 
   const batteryCapacityTotal = useMemo(
     () =>
@@ -60,6 +68,7 @@ function StorageAreaScreen() {
       return {
         id: b.id,
         name: def?.name ?? 'Batarya',
+        gameKey: getBatteryGameKeyFromTypeId(b.type),
         capacityKwh: cap,
         chargePct: slice?.chargePct ?? 0,
         storedKwh: slice?.storedKwh ?? 0,
@@ -102,6 +111,11 @@ function StorageAreaScreen() {
     [batteriesDisplay, selectedBatteryId],
   )
 
+  const batteryUpgradeProjection = useMemo(() => {
+    if (!selectedBattery?.gameKey) return null
+    return getBatteryUpgradeProjection(selectedBattery.gameKey, level, unlockedResearches)
+  }, [selectedBattery, level, unlockedResearches])
+
   const selectedEquipment = useMemo(
     () => batteryOptions.find((item) => item.id === selectedBatteryKey) ?? null,
     [batteryOptions, selectedBatteryKey],
@@ -139,6 +153,13 @@ function StorageAreaScreen() {
       return
     }
     closeEmptySlotPurchaseModal()
+  }
+
+  const handleBatteryUpgrade = () => {
+    if (!selectedBattery) return
+    setBatteryUpgradeError('')
+    const result = upgradeBattery(selectedBattery.id)
+    if (!result.ok) setBatteryUpgradeError(result.reason || 'Yükseltme başarısız.')
   }
 
   return (
@@ -292,21 +313,38 @@ function StorageAreaScreen() {
 
       <Modal
         isOpen={Boolean(selectedBattery)}
-        onClose={() => setSelectedBatteryId(null)}
+        onClose={() => {
+          setSelectedBatteryId(null)
+          setBatteryUpgradeError('')
+        }}
         title={selectedBattery ? selectedBattery.name : 'Batarya Detayı'}
       >
         {selectedBattery && (
-          <div className="space-y-2 font-bold text-shade">
-            <p className="text-sm text-shade-2">Sıra: Depo {selectedBattery.orderIndex}</p>
-            <p className="text-sm text-shade-2">Kapasite: {selectedBattery.capacityKwh} kWh</p>
-            <p className={`text-base ${selectedBattery.chargePct >= 100 ? 'text-rose-700' : ''}`}>
-              Bu depoda saklı:{' '}
-              {selectedBattery.storedKwh.toLocaleString('tr-TR', {
-                maximumFractionDigits: 2,
-              })}{' '}
-              kWh · %{selectedBattery.chargePct}
-              {selectedBattery.chargePct >= 100 ? ' — depo dolu' : ''}
-            </p>
+          <div className="space-y-3 font-bold text-shade">
+            <div className="rounded-2xl border-3 border-slate-900 bg-background p-3 shadow-[inset_0_0_0_1px_rgba(42,42,51,0.06)]">
+              <p className="text-[11px] font-black uppercase tracking-wide text-shade-soft">Depo detayı</p>
+              <p className="text-sm text-shade-2 mt-2">Sıra: Depo {selectedBattery.orderIndex}</p>
+              <p className="text-sm mt-1">Nominal kapasite: {selectedBattery.capacityKwh} kWh</p>
+              <p className={`text-base mt-2 ${selectedBattery.chargePct >= 100 ? 'text-rose-700' : ''}`}>
+                Bu depoda saklı:{' '}
+                {selectedBattery.storedKwh.toLocaleString('tr-TR', {
+                  maximumFractionDigits: 2,
+                })}{' '}
+                kWh · %{selectedBattery.chargePct}
+                {selectedBattery.chargePct >= 100 ? ' — depo dolu' : ''}
+              </p>
+              <p className="text-[11px] font-bold text-shade-soft mt-3 leading-snug">
+                Retrofit daha yüksek kapasiteli hücre demektir; depodaki güncel kWh yüzdelikleri sistemdeki sıra kurallarına göre yeniden dağıtılır.
+              </p>
+            </div>
+
+            <EquipmentUpgradeSection
+              variant="battery"
+              projection={batteryUpgradeProjection}
+              coins={coins}
+              onUpgrade={handleBatteryUpgrade}
+              error={batteryUpgradeError}
+            />
           </div>
         )}
       </Modal>

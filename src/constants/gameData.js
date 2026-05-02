@@ -1,6 +1,6 @@
 /** @typedef {{ id: string, name: string, area: number, efficiency: number, price: number, dirtyDaysLimit: number, reqLevel?: number, reqResearch?: string }} PanelDef */
 /** @typedef {{ id: string, name: string, capacity: number, price: number, reqLevel?: number, reqResearch?: string }} BatteryDef */
-/** @typedef {{ id: string, name: string, price: number }} ResearchDef */
+/** @typedef {{ id: string, name: string, price: number, reqLevel?: number }} ResearchDef */
 
 export const PANELS = {
   STANDARD: {
@@ -58,11 +58,15 @@ export const BATTERIES = {
   },
 }
 
+/**
+ * Coin ile satın alınan araştırma lisansları (panels/battery’ye göre cüzi, ama öğrenme maliyeti hissi verir).
+ * Yuva açma 1200 Coin; başlangıç paneli 1200. Lv.3 araştırma ~%40 yuva fiyatı, Lv.5 ~%62.
+ */
 export const RESEARCHES = {
-  GLASS: { id: 'r_glass', name: 'Temperli Termal Cam', price: 1500 },
-  WAFER: { id: 'r_wafer', name: 'Zenginleştirilmiş Wafer', price: 3000 },
-  COBALT: { id: 'r_cobalt', name: 'İşlenmiş Kobalt', price: 1800 },
-  POLYMER: { id: 'r_polymer', name: 'Süperiletken Polimer', price: 3500 },
+  GLASS: { id: 'r_glass', name: 'Temperli Termal Cam', price: 520, reqLevel: 3 },
+  WAFER: { id: 'r_wafer', name: 'Zenginleştirilmiş Wafer', price: 780, reqLevel: 5 },
+  COBALT: { id: 'r_cobalt', name: 'İşlenmiş Kobalt', price: 560, reqLevel: 3 },
+  POLYMER: { id: 'r_polymer', name: 'Süperiletken Polimer', price: 820, reqLevel: 5 },
 }
 
 /** @type {{ [legacyKey: string]: string }} */
@@ -71,6 +75,14 @@ export const LEGACY_RESEARCH_KEY_TO_ID = {
   enrichedWafer: 'r_wafer',
   processedCobalt: 'r_cobalt',
   superconductivePolymer: 'r_polymer',
+}
+
+/** Persist’taki legacy key → mağaza / buyItem('research') anahtarı (GLASS, WAFER…) */
+export const RESEARCH_LEGACY_KEY_TO_STORE_KEY = {
+  temperedThermalGlass: 'GLASS',
+  enrichedWafer: 'WAFER',
+  processedCobalt: 'COBALT',
+  superconductivePolymer: 'POLYMER',
 }
 
 /** @type {{ [researchId: string]: string }} */

@@ -67,7 +67,7 @@ function DashboardScreen() {
   const liveTrend = getSpotEnergyTrendLabel({ day, hour, cityName })
 
   const [sellModalOpen, setSellModalOpen] = useState(false)
-  const [sellPct, setSellPct] = useState(40)
+  const [sellPct, setSellPct] = useState(100)
   const [frozenSpotCoinPerKwh, setFrozenSpotCoinPerKwh] = useState(null)
   const [sellError, setSellError] = useState('')
   const loopModeBeforeSellRef = useRef(null)

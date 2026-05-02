@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { BatteryCharging, Lock, SunMedium } from 'lucide-react'
+import { RESEARCHES_BY_KEY } from '../constants/gameData'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import RESEARCH_UPGRADES from '../constants/researchUpgrades'
@@ -10,13 +12,27 @@ function ExploreScreen() {
   const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
   const research = useGameStore((s) => s.research)
-  const unlockResearch = useGameStore((s) => s.unlockResearch)
+  const buyItem = useGameStore((s) => s.buyItem)
+
+  const [labErrorForKey, setLabErrorForKey] = useState(null)
 
   const renderUpgradeCard = (upgrade, type) => {
+    const def = RESEARCHES_BY_KEY[upgrade.storeKey]
+    const requiredLevel = def?.reqLevel ?? 99
+    const price = def?.price ?? 0
+    const label = def?.name ?? 'Araştırma'
+
     const isUnlocked = Boolean(research?.[upgrade.key])
-    const meetsLevel = level >= upgrade.requiredLevel
+    const meetsLevel = level >= requiredLevel
     const isLocked = !isUnlocked && !meetsLevel
+    const canAfford = coins >= price
     const Icon = type === 'panel' ? SunMedium : BatteryCharging
+
+    const tryPurchase = () => {
+      setLabErrorForKey(null)
+      const result = buyItem('research', upgrade.storeKey)
+      if (!result.ok) setLabErrorForKey({ key: upgrade.key, msg: result.reason || 'Satın alınamadı.' })
+    }
 
     return (
       <article
@@ -36,13 +52,18 @@ function ExploreScreen() {
               Aktif
             </span>
           ) : (
-            <span className="rounded-full border-2 border-slate-900 bg-background px-2.5 py-1 text-xs font-black">
-              Lv. {upgrade.requiredLevel}
-            </span>
+            <div className="text-right shrink-0">
+              <span className="rounded-full border-2 border-slate-900 bg-background px-2.5 py-1 text-xs font-black">
+                En az Lv. {requiredLevel}
+              </span>
+              {!isLocked && (
+                <p className="mt-1 text-[11px] font-black text-shade-2">{price.toLocaleString('tr-TR')} Coin</p>
+              )}
+            </div>
           )}
         </div>
 
-        <p className="font-black text-lg leading-tight">{upgrade.name}</p>
+        <p className="font-black text-lg leading-tight">{label}</p>
         <p className="font-bold text-sm text-shade-2 mt-2 min-h-[58px]">{upgrade.benefit}</p>
 
         <div className="mt-3">
@@ -56,18 +77,33 @@ function ExploreScreen() {
                 <Lock className="w-4 h-4" />
                 Kilitli
               </p>
-              <p className="font-bold text-xs text-shade-2 mt-1">Açmak için en az Lv. {upgrade.requiredLevel} olmalısın.</p>
+              <p className="font-bold text-xs text-shade-2 mt-1">Önce en az Lv. {requiredLevel} olmalısın.</p>
+              <p className="font-bold text-[11px] text-shade-soft mt-2">
+                Açılınca lisans ücreti: {price.toLocaleString('tr-TR')} Coin
+              </p>
             </div>
           ) : (
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => unlockResearch(upgrade.key)}
-              className="w-full rounded-xl border-4 border-slate-900 bg-sunlit-deep px-3 py-2.5 font-black text-sm shadow-[3px_3px_0px_0px_var(--shade)] cursor-pointer"
-            >
-              Araştırmayı Aç
-            </motion.button>
+            <>
+              <div className="rounded-xl border-3 border-slate-900 bg-background/95 px-3 py-2 mb-2">
+                <p className="text-[11px] font-black uppercase tracking-wide text-shade-soft">Laboratuvar maliyeti</p>
+                <p className="font-black text-base tabular-nums">{price.toLocaleString('tr-TR')} Coin</p>
+              </div>
+              {labErrorForKey?.key === upgrade.key && (
+                <p className="mb-2 text-xs font-bold text-rose-800">{labErrorForKey.msg}</p>
+              )}
+              <motion.button
+                type="button"
+                disabled={!canAfford}
+                whileHover={{ scale: canAfford ? 1.02 : 1 }}
+                whileTap={{ scale: canAfford ? 0.98 : 1 }}
+                onClick={() => tryPurchase()}
+                className={`w-full rounded-xl border-4 border-slate-900 px-3 py-2.5 font-black text-sm shadow-[3px_3px_0px_0px_var(--shade)] ${
+                  canAfford ? 'bg-sunlit-deep cursor-pointer' : 'bg-border text-shade-2 opacity-85 cursor-not-allowed'
+                }`}
+              >
+                {canAfford ? `${price.toLocaleString('tr-TR')} Coin öde — Aç` : 'Yetersiz coin'}
+              </motion.button>
+            </>
           )}
         </div>
       </article>
@@ -91,8 +127,9 @@ function ExploreScreen() {
               <div>
                 <p className="font-black text-xs text-shade-2">Araştırma Laboratuvarı</p>
                 <h1 className="font-black text-3xl">Araştırma Geliştirmeleri</h1>
-                <p className="font-bold text-sm text-shade-2 mt-1">
-                  Yeni teknolojileri açarak panel ve batarya verimini artır.
+                <p className="font-bold text-sm text-shade-2 mt-1 leading-relaxed">
+                  Her araştırma hem seviye hem de küçük bir Coin lisansı ile açılır; fiyatlar{' '}
+                  <span className="font-black">gameData.js</span> ile tutarlıdır.
                 </p>
               </div>
               <span className="rounded-full border-3 border-slate-900 bg-breeze px-4 py-2 font-black text-sm">

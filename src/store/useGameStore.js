@@ -5,6 +5,7 @@ import {
   BATTERY_DEF_BY_TYPE_ID,
   HUB_SLOT_UNLOCK_COST,
   LEGACY_RESEARCH_KEY_TO_ID,
+  RESEARCH_LEGACY_KEY_TO_STORE_KEY,
   PANELS_BY_KEY,
   PANEL_CLEAN_COST,
   PANEL_DEF_BY_TYPE_ID,
@@ -13,9 +14,17 @@ import {
 } from '../constants/gameData'
 import GAME_CONFIG from '../config/gameConfig'
 import {
+  getBatteryGameKeyFromTypeId,
+  getBatteryUpgradeProjection,
+  getPanelGameKeyFromTypeId,
+  getPanelUpgradeProjection,
+} from '../constants/equipmentUpgrade'
+import {
   xpForBatteryPurchase,
+  xpForBatteryUpgradeTo,
   xpForEnergySold,
   xpForPanelPurchase,
+  xpForPanelUpgradeTo,
   xpForResearchPurchase,
   XP_REWARDS,
 } from '../constants/xpRewards'
@@ -420,6 +429,9 @@ const useGameStore = create(
           if (state.unlockedResearches.includes(def.id)) {
             return { ok: false, reason: 'Zaten açık' }
           }
+          if (def.reqLevel != null && state.level < def.reqLevel) {
+            return { ok: false, reason: `Seviye yetersiz (en az Lv.${def.reqLevel})` }
+          }
           if (state.coins < def.price) {
             return { ok: false, reason: 'Yetersiz coin' }
           }
@@ -524,6 +536,87 @@ const useGameStore = create(
       },
 
       /**
+       * Sahadaki paneli bir üst tipe çıkarır (coin + hedef tipin araştırma/seviye şartları).
+       * @returns {{ ok: true } | { ok: false, reason: string }}
+       */
+      upgradePanel: (panelId) => {
+        const state = get()
+        const idx = state.activePanels.findIndex((p) => p.id === panelId)
+        if (idx === -1) return { ok: false, reason: 'Panel bulunamadı.' }
+        const panel = state.activePanels[idx]
+        const fromKey = getPanelGameKeyFromTypeId(panel.type)
+        if (!fromKey) return { ok: false, reason: 'Geçersiz panel tipi.' }
+        const proj = getPanelUpgradeProjection(fromKey, state.level, state.unlockedResearches)
+        if (!proj) return { ok: false, reason: 'Zaten en üst panel seviyesindesin.' }
+        if (!proj.canPurchase) {
+          return { ok: false, reason: proj.blockerLines[0] ?? 'Önce şartları sağlamalısın.' }
+        }
+        if (state.coins < proj.coinCost) return { ok: false, reason: 'Yetersiz coin.' }
+
+        const nextDef = proj.targetDef
+        const xpAmt = xpForPanelUpgradeTo(proj.nextKey)
+        const { experience, level } = applyExperienceGain(state.experience, state.level, xpAmt)
+
+        const nextPanels = [...state.activePanels]
+        nextPanels[idx] = {
+          ...panel,
+          type: nextDef.id,
+          daysSinceCleaned: 0,
+        }
+
+        set({
+          coins: state.coins - proj.coinCost,
+          activePanels: nextPanels,
+          experience,
+          level,
+          ...touch(),
+        })
+        return { ok: true }
+      },
+
+      /**
+       * Sahadaki bataryayı bir üst tipe çıkarır; toplam kapasite küçülürse depo enerjisi clip edilir.
+       * @returns {{ ok: true } | { ok: false, reason: string }}
+       */
+      upgradeBattery: (batteryId) => {
+        const state = get()
+        const idx = state.activeBatteries.findIndex((b) => b.id === batteryId)
+        if (idx === -1) return { ok: false, reason: 'Batarya bulunamadı.' }
+        const batt = state.activeBatteries[idx]
+        const fromKey = getBatteryGameKeyFromTypeId(batt.type)
+        if (!fromKey) return { ok: false, reason: 'Geçersiz batarya tipi.' }
+        const proj = getBatteryUpgradeProjection(fromKey, state.level, state.unlockedResearches)
+        if (!proj) return { ok: false, reason: 'Zaten en üst depolama sınıfındasın.' }
+        if (!proj.canPurchase) {
+          return { ok: false, reason: proj.blockerLines[0] ?? 'Önce şartları sağlamalısın.' }
+        }
+        if (state.coins < proj.coinCost) return { ok: false, reason: 'Yetersiz coin.' }
+
+        const nextDef = proj.targetDef
+        const xpAmt = xpForBatteryUpgradeTo(proj.nextKey)
+        const { experience, level } = applyExperienceGain(state.experience, state.level, xpAmt)
+
+        const nextBatts = [...state.activeBatteries]
+        nextBatts[idx] = { ...batt, type: nextDef.id }
+
+        const newCap = nextBatts.reduce(
+          (sum, b) => sum + (BATTERY_DEF_BY_TYPE_ID[b.type]?.capacity ?? 0),
+          0,
+        )
+        const nextEnergy = Math.min(state.currentEnergy, newCap)
+
+        set({
+          coins: state.coins - proj.coinCost,
+          activeBatteries: nextBatts,
+          currentEnergy: nextEnergy,
+          experience,
+          level,
+          ...touch(),
+        })
+        return { ok: true }
+      },
+
+      /**
        * Bataryadan depolu enerji satışı (modalda sabitlenen spot Coin/kWh ile).
        * @param {{ percentSold: number, lockedPriceCoinPerKwh: number }}
        * @returns {{ ok: true, kwhSold: number, coinsEarned: number } | { ok: false, reason: string }}
@@ -614,33 +707,11 @@ const useGameStore = create(
           ...touch(),
         })),
 
-      unlockResearch: (researchKey) =>
-        set((state) => {
-          if (state.research?.[researchKey]) return {}
-
-          const rid = LEGACY_RESEARCH_KEY_TO_ID[researchKey]
-          let nextUnlocks = state.unlockedResearches
-          if (rid && !state.unlockedResearches.includes(rid)) {
-            nextUnlocks = [...state.unlockedResearches, rid]
-          }
-
-          const { experience, level } = applyExperienceGain(
-            state.experience,
-            state.level,
-            XP_REWARDS.exploreResearchUnlock,
-          )
-
-          return {
-            research: {
-              ...state.research,
-              [researchKey]: true,
-            },
-            unlockedResearches: nextUnlocks,
-            experience,
-            level,
-            ...touch(),
-          }
-        }),
+      unlockResearch: (researchKey) => {
+        const storeKey = RESEARCH_LEGACY_KEY_TO_STORE_KEY[researchKey]
+        if (!storeKey) return { ok: false, reason: 'Geçersiz araştırma' }
+        return get().buyItem('research', storeKey)
+      },
 
       resetGame: () => set(createInitialGameState()),
     }),

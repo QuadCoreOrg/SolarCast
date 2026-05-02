@@ -2,7 +2,12 @@ import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { ShoppingCart, SunMedium } from 'lucide-react'
 import { HUB_SLOT_UNLOCK_COST, PANELS, PANEL_CLEAN_COST, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
+import {
+  getPanelGameKeyFromTypeId,
+  getPanelUpgradeProjection,
+} from '../constants/equipmentUpgrade'
 import useGameStore from '../store/useGameStore'
+import EquipmentUpgradeSection from '../components/EquipmentUpgradeSection'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import PowerHub from '../components/PowerHub'
@@ -19,8 +24,10 @@ function PowerCenterScreen() {
   const buyItem = useGameStore((s) => s.buyItem)
   const cleanPanel = useGameStore((s) => s.cleanPanel)
   const unlockHubSlot = useGameStore((s) => s.unlockHubSlot)
+  const upgradePanel = useGameStore((s) => s.upgradePanel)
 
   const [selectedItemId, setSelectedItemId] = useState(null)
+  const [upgradeError, setUpgradeError] = useState('')
   const [emptySlotModalIndex, setEmptySlotModalIndex] = useState(null)
   const [selectedEquipmentKey, setSelectedEquipmentKey] = useState(null)
   const [purchaseError, setPurchaseError] = useState('')
@@ -64,6 +71,9 @@ function PowerCenterScreen() {
           id: panel.id,
           name: def?.name ?? 'Panel',
           type: 'panel',
+          gameKey: getPanelGameKeyFromTypeId(panel.type),
+          area: def?.area ?? 0,
+          efficiency: def?.efficiency ?? 0,
           outputPerSec: def?.area ?? 0,
           daysSinceCleaned,
           dirtyDaysLimit,
@@ -78,6 +88,7 @@ function PowerCenterScreen() {
   const canAffordUnlock = coins >= unlockPrice
 
   const openUpgradeModal = (itemId) => {
+    setUpgradeError('')
     setSelectedItemId(itemId)
   }
 
@@ -142,10 +153,22 @@ function PowerCenterScreen() {
     [panelInventory, selectedItemId],
   )
 
+  const panelUpgradeProjection = useMemo(() => {
+    if (!selectedItem?.gameKey) return null
+    return getPanelUpgradeProjection(selectedItem.gameKey, level, unlockedResearches)
+  }, [selectedItem, level, unlockedResearches])
+
   const selectedEquipment =
     selectedEquipmentKey != null
       ? equipmentOptions.find((item) => item.key === selectedEquipmentKey) ?? null
       : null
+
+  const handlePanelUpgrade = () => {
+    if (!selectedItem) return
+    setUpgradeError('')
+    const result = upgradePanel(selectedItem.id)
+    if (!result.ok) setUpgradeError(result.reason || 'Yükseltme başarısız.')
+  }
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
@@ -180,27 +203,54 @@ function PowerCenterScreen() {
 
       <Modal
         isOpen={Boolean(selectedItem)}
-        onClose={() => setSelectedItemId(null)}
+        onClose={() => {
+          setSelectedItemId(null)
+          setUpgradeError('')
+        }}
         title={selectedItem ? selectedItem.name : 'Panel Detayı'}
       >
         {selectedItem && (
-          <div className="space-y-2 font-bold text-shade">
-            <p className="text-sm text-shade-2">Tip: Güneş Paneli</p>
-            <p className="text-base">Üretim: +{selectedItem.outputPerSec ?? 0} kWh (1000 W/m²)</p>
-            <p className="text-sm text-shade-2">Son temizlikten beri: {selectedItem.daysSinceCleaned ?? 0} gün</p>
-            {selectedItem.needsCleaning && (
-              <p className="text-xs text-rose-800">Kirli panelde üretim %75 azalır (verim %25'e düşer).</p>
-            )}
-            {selectedItem.needsCleaning && (
-              <button
-                type="button"
-                onClick={() => handleCleanPanel(selectedItem.id)}
-                className="rounded-xl border-3 border-slate-900 bg-sunlit px-3 py-1 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)]"
-              >
-                {PANEL_CLEAN_COST} Coin ile Temizle
-              </button>
-            )}
-            <p className="text-sm text-shade-soft">Yükseltme ve detay aksiyonları yakında burada olacak.</p>
+          <div className="space-y-3 font-bold text-shade">
+            <div className="rounded-2xl border-3 border-slate-900 bg-background p-3 shadow-[inset_0_0_0_1px_rgba(42,42,51,0.06)]">
+              <p className="text-[11px] font-black uppercase tracking-wide text-shade-soft">Ekipman detayı</p>
+              <p className="text-sm text-shade-2 mt-2">Tip: Güneş paneli</p>
+              <p className="text-sm mt-1">
+                Alan {selectedItem.area ?? selectedItem.outputPerSec ?? 0} m² · Verim %
+                {(typeof selectedItem.efficiency === 'number' ? selectedItem.efficiency * 100 : 0).toFixed(0)}
+              </p>
+              <p className="text-base mt-1">
+                Tahmini üretim: +{selectedItem.outputPerSec ?? 0} kWh (1000 W/m²)
+              </p>
+              <p className="text-sm text-shade-2 mt-2 border-t border-slate-900/15 pt-2">
+                Kirlenme: {selectedItem.dirtyDaysLimit > 0 ? `her ${selectedItem.dirtyDaysLimit} günde bir` : 'yok'}{' '}
+                · Son temizlikten beri {selectedItem.daysSinceCleaned ?? 0} gün
+              </p>
+              {selectedItem.needsCleaning && (
+                <p className="text-xs font-black text-rose-800 mt-2">
+                  Kirli panelde üretim ciddi düşer — temizlik önerilir.
+                </p>
+              )}
+              {selectedItem.needsCleaning && (
+                <button
+                  type="button"
+                  onClick={() => handleCleanPanel(selectedItem.id)}
+                  className="mt-2 rounded-xl border-3 border-slate-900 bg-sunlit px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-px active:shadow-none"
+                >
+                  {PANEL_CLEAN_COST} Coin ile temizle
+                </button>
+              )}
+              <p className="text-[11px] font-bold text-shade-soft mt-3 leading-snug">
+                Retrofit yükseltmeden sonra gövde sıfır kabul edilir; kirlenme sayacı sıfırlanır.
+              </p>
+            </div>
+
+            <EquipmentUpgradeSection
+              variant="panel"
+              projection={panelUpgradeProjection}
+              coins={coins}
+              onUpgrade={handlePanelUpgrade}
+              error={upgradeError}
+            />
           </div>
         )}
       </Modal>
