@@ -1,4 +1,4 @@
-import { FlaskConical, Gauge, Settings, Store, Zap } from "lucide-react";
+import { BatteryCharging, FlaskConical, Gauge, Settings, Store, Zap } from "lucide-react";
 
 const tabs = [
   { id: "dashboard", label: "Gösterge Paneli", icon: Gauge, bg: "bg-sunlit" },
@@ -9,6 +9,7 @@ const tabs = [
     bg: "bg-breeze-deep",
     iconFill: true,
   },
+  { id: "storage_area", label: "Depolama Alanı", icon: BatteryCharging, bg: "bg-sprout" },
   { id: "market", label: "Mağaza", icon: Store, bg: "bg-sprout" },
   { id: "research", label: "Araştırma", icon: FlaskConical, bg: "bg-blossom" },
   { id: "settings", label: "Ayarlar", icon: Settings, bg: "bg-sunlit-deep" },

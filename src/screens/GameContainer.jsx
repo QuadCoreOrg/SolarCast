@@ -5,6 +5,7 @@ import CitySelectScreen from './CitySelectScreen'
 import DashboardScreen from './DashboardScreen'
 import MarketScreen from './MarketScreen'
 import PowerCenterScreen from './PowerCenterScreen'
+import StorageAreaScreen from './StorageAreaScreen'
 import ExploreScreen from './ExploreScreen'
 import SettingsScreen from './SettingsScreen'
 
@@ -28,6 +29,9 @@ function GameContainer() {
         )}
         {currentScreen === 'power_center' && (
           <PowerCenterScreen key="power_center" />
+        )}
+        {currentScreen === 'storage_area' && (
+          <StorageAreaScreen key="storage_area" />
         )}
         {currentScreen === 'research' && (
           <ExploreScreen key="research" />
