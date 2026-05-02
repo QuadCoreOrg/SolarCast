@@ -13,8 +13,14 @@ function PowerCenterScreen() {
   const inventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
   const unlockedSlots = useGameStore((s) => s.unlockedSlots)
-  const filledSlots = inventory.length
   const [selectedItemId, setSelectedItemId] = useState(null)
+  // UI-only unlock flow: store değerlerini değiştirmeden ekranda kilit açılmış gibi gösterir.
+  const [uiUnlockedSlots, setUiUnlockedSlots] = useState(unlockedSlots)
+  const [unlockSlotIndex, setUnlockSlotIndex] = useState(null)
+
+  const filledSlots = inventory.length
+  const unlockPrice = 1200
+  const canAffordUnlock = coins >= unlockPrice
 
   const openUpgradeModal = (itemId) => {
     setSelectedItemId(itemId)
@@ -22,6 +28,22 @@ function PowerCenterScreen() {
 
   const openMarketModal = () => {
     setScreen('market')
+  }
+
+  const openUnlockModal = (slotIndex) => {
+    setUnlockSlotIndex(slotIndex)
+  }
+
+  const closeUnlockModal = () => {
+    setUnlockSlotIndex(null)
+  }
+
+  const handleUnlockPurchase = () => {
+    if (!canAffordUnlock) {
+      return
+    }
+    setUiUnlockedSlots((prev) => Math.min(prev + 1, maxSlots))
+    closeUnlockModal()
   }
 
   const selectedItem = useMemo(
@@ -45,10 +67,15 @@ function PowerCenterScreen() {
             <div className="flex items-center justify-between mb-3">
               <h1 className="font-black text-2xl">Güç Merkezi</h1>
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-3 py-1 text-xs font-black">
-                {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
+                {filledSlots}/{uiUnlockedSlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
-            <PowerHub openUpgradeModal={openUpgradeModal} openMarketModal={openMarketModal} />
+            <PowerHub
+              openUpgradeModal={openUpgradeModal}
+              openMarketModal={openMarketModal}
+              onLockedSlotClick={openUnlockModal}
+              unlockedSlots={uiUnlockedSlots}
+            />
           </article>
         </section>
       </motion.main>
@@ -70,6 +97,45 @@ function PowerCenterScreen() {
             <p className="text-sm text-shade-soft">Yükseltme ve detay aksiyonları yakında burada olacak.</p>
           </div>
         )}
+      </Modal>
+
+      <Modal isOpen={unlockSlotIndex !== null} onClose={closeUnlockModal} title="Kilit Açma Satın Alımı">
+        <div className="space-y-4 font-bold text-shade">
+          <p className="text-sm text-shade-2">
+            {unlockSlotIndex !== null ? `${unlockSlotIndex + 1}. yuva kilitli.` : 'Bu yuva kilitli.'}
+          </p>
+          <div className="rounded-2xl border-3 border-slate-900 bg-breeze/50 p-3">
+            <p className="text-xs text-shade-soft">Açma Bedeli</p>
+            <p className="text-xl font-black">{unlockPrice} Coin</p>
+          </div>
+          <div className="rounded-2xl border-3 border-slate-900 bg-background p-3">
+            <p className="text-xs text-shade-soft">Mevcut Coin</p>
+            <p className="text-xl font-black">{coins} Coin</p>
+          </div>
+          {!canAffordUnlock && (
+            <p className="text-xs text-rose-700">Yeterli coin yok. Bu yuvayı açmak için daha fazla coin gerekli.</p>
+          )}
+          <p className="text-xs text-shade-soft">
+            Bu akış sadece UI gösterimidir. Satın alma ve coin düşümü gerçek oyun verisini etkilemez.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={handleUnlockPurchase}
+              disabled={!canAffordUnlock}
+              className="flex-1 rounded-2xl border-4 border-slate-900 bg-sprout px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_var(--shade)]"
+            >
+              {unlockPrice} Coin Öde ve Aç
+            </button>
+            <button
+              type="button"
+              onClick={closeUnlockModal}
+              className="flex-1 rounded-2xl border-4 border-slate-900 bg-background px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none"
+            >
+              Vazgeç
+            </button>
+          </div>
+        </div>
       </Modal>
 
       <TabBar activeScreen="power_center" onChange={setScreen} />
