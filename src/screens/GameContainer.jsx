@@ -4,6 +4,7 @@ import HowToScreen from './HowToScreen'
 import CitySelectScreen from './CitySelectScreen'
 import DashboardScreen from './DashboardScreen'
 import MarketScreen from './MarketScreen'
+import PowerCenterScreen from './PowerCenterScreen'
 
 function GameContainer() {
   const currentScreen = useGameStore((state) => state.currentScreen)
@@ -22,6 +23,9 @@ function GameContainer() {
         )}
         {currentScreen === 'market' && (
           <MarketScreen key="market" />
+        )}
+        {currentScreen === 'power_center' && (
+          <PowerCenterScreen key="power_center" />
         )}
       </AnimatePresence>
     </div>

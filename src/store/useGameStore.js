@@ -12,6 +12,12 @@ const useGameStore = create((set) => ({
   solarPanels: [],
   batteries: [],
   upgrades: [],
+  inventory: [
+    { id: 'panel-ultra-1', type: 'panel', name: 'Ultra Panel', outputPerSec: 15 },
+    { id: 'panel-standard-1', type: 'panel', name: 'Standart Panel', outputPerSec: 9 },
+    { id: 'battery-mega-1', type: 'battery', name: 'Mega Batarya', chargePct: 100 },
+  ],
+  maxSlots: 6,
 
   dailyGoal: 80,
   currentProgress: 0,
