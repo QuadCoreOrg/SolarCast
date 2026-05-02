@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { BatteryCharging, CirclePlus, ShoppingCart } from 'lucide-react'
 import { BATTERIES, BATTERY_DEF_BY_TYPE_ID, HUB_SLOT_UNLOCK_COST } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
+import { allocateSequentialBatteryDisplay } from '../utils/sequentialBatteryAllocation'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import TabBar from '../components/TabBar'
@@ -35,22 +36,38 @@ function StorageAreaScreen() {
     [activeBatteries],
   )
 
-  const sharedFillPct =
-    batteryCapacityTotal > 0 ? Math.min(100, Math.round((currentEnergy / batteryCapacityTotal) * 100)) : 0
+  const warehouseFull =
+    batteryCapacityTotal > 0 &&
+    Math.min(currentEnergy, batteryCapacityTotal) >= batteryCapacityTotal - 1e-6
 
-  const batteriesDisplay = useMemo(
-    () =>
-      activeBatteries.map((b) => {
-        const def = BATTERY_DEF_BY_TYPE_ID[b.type]
-        return {
-          id: b.id,
-          name: def?.name ?? 'Batarya',
-          capacityKwh: def?.capacity ?? 0,
-          chargePct: sharedFillPct,
-        }
-      }),
-    [activeBatteries, sharedFillPct],
-  )
+  const aggregateFillPct =
+    batteryCapacityTotal > 0
+      ? Math.min(100, Math.round((currentEnergy / batteryCapacityTotal) * 100))
+      : 0
+
+  const batteriesDisplay = useMemo(() => {
+    const units = activeBatteries.map((b) => ({
+      id: b.id,
+      capacityKwh: BATTERY_DEF_BY_TYPE_ID[b.type]?.capacity ?? 0,
+    }))
+    const alloc = allocateSequentialBatteryDisplay(currentEnergy, units)
+
+    return activeBatteries.map((b, idx) => {
+      const def = BATTERY_DEF_BY_TYPE_ID[b.type]
+      const slice = alloc[idx]
+      const cap = def?.capacity ?? 0
+
+      return {
+        id: b.id,
+        name: def?.name ?? 'Batarya',
+        capacityKwh: cap,
+        chargePct: slice?.chargePct ?? 0,
+        storedKwh: slice?.storedKwh ?? 0,
+        orderIndex: slice?.orderIndex ?? idx + 1,
+        isFull: Boolean(slice?.isFull && cap > 0),
+      }
+    })
+  }, [activeBatteries, currentEnergy])
 
   const filledSlots = batteriesDisplay.length
 
@@ -143,21 +160,29 @@ function StorageAreaScreen() {
                 {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
-            <p className="text-xs font-bold text-shade-2 mb-3">
+            <p className="text-xs font-bold text-shade-2 mb-3 leading-relaxed">
               Toplam depolama:{' '}
               <span className="font-black text-shade">
                 {batteryCapacityTotal > 0 ? `${batteryCapacityTotal.toLocaleString('tr-TR')} kWh` : '0 kWh'}
               </span>
               {' · '}
-              Dolu:{' '}
-              <span className="font-black text-shade">
+              Toplam dolu:{' '}
+              <span className={`font-black ${warehouseFull ? 'text-rose-700' : 'text-shade'}`}>
                 {batteryCapacityTotal > 0
                   ? `${Math.min(currentEnergy, batteryCapacityTotal).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} kWh`
                   : '—'}
               </span>
               {' · '}
-              Paylaşımlı doluluk:{' '}
-              <span className="font-black text-shade">{batteryCapacityTotal > 0 ? `%${sharedFillPct}` : '—'}</span>
+              Genel doluluk:{' '}
+              <span className={`font-black ${warehouseFull ? 'text-rose-700' : 'text-shade'}`}>
+                {batteryCapacityTotal > 0 ? `%${aggregateFillPct}` : '—'}
+              </span>
+              {batteryCapacityTotal > 0 && (
+                <span className="block mt-2 font-black text-[11px] text-shade-2">
+                  Dolum sırası: önce 1. depo dolacak şekilde dolar; taşan enerji 2. ve sonraki depolara sırayla yazar.
+                  Her kartın yüzdesi o deponun kendi doluluğudur; %100 uyarı olarak kırmızı görünür.
+                </span>
+              )}
               {batteryCapacityTotal === 0 && ' (henüz batarya yok)'}
             </p>
 
@@ -196,6 +221,7 @@ function StorageAreaScreen() {
                   }
 
                   if (item) {
+                    const full = item.isFull || item.chargePct >= 100
                     return (
                       <motion.button
                         key={item.id}
@@ -204,16 +230,39 @@ function StorageAreaScreen() {
                         whileHover={{ y: -3, scale: 1.02 }}
                         whileTap={{ y: 0, scale: 0.97 }}
                         transition={{ type: 'spring', stiffness: 420, damping: 24 }}
-                        className="rounded-3xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)] text-shade cursor-pointer"
+                        className={`rounded-3xl border-4 p-4 shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer relative ${
+                          full
+                            ? 'border-rose-700 bg-rose-50/60 text-shade ring-2 ring-rose-400/70'
+                            : 'border-slate-900 bg-background text-shade'
+                        }`}
                       >
-                        <div className="mx-auto mb-3 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background">
-                          <div className="w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center bg-sprout">
+                        <span
+                          className={`absolute left-3 top-3 rounded-full border-2 px-2 py-0.5 text-[10px] font-black ${
+                            full
+                              ? 'border-rose-800 bg-rose-600 text-white'
+                              : 'border-slate-900 bg-background text-shade'
+                          }`}
+                        >
+                          Depo {item.orderIndex}
+                        </span>
+                        <div className="mx-auto mb-3 mt-6 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background">
+                          <div
+                            className={`w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center ${
+                              full ? 'bg-rose-200' : 'bg-sprout'
+                            }`}
+                          >
                             <BatteryCharging className="w-6 h-6" strokeWidth={2.25} />
                           </div>
                         </div>
                         <p className="font-black text-lg leading-tight">{item.name}</p>
-                        <p className="font-black text-sm text-shade-2 mt-1">{item.capacityKwh} kWh</p>
-                        <p className="font-black text-xs text-shade-soft mt-1">Depo doluluğu %{item.chargePct}</p>
+                        <p className="font-black text-sm text-shade-2 mt-1">
+                          Kapasite {item.capacityKwh} kWh
+                        </p>
+                        <p className={`font-black text-xs mt-1 tabular-nums ${full ? 'text-rose-800' : 'text-shade-soft'}`}>
+                          Bu depoda: {item.storedKwh.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} kWh · %
+                          {item.chargePct}
+                          {full ? ' — dolu' : ''}
+                        </p>
                       </motion.button>
                     )
                   }
@@ -248,8 +297,16 @@ function StorageAreaScreen() {
       >
         {selectedBattery && (
           <div className="space-y-2 font-bold text-shade">
+            <p className="text-sm text-shade-2">Sıra: Depo {selectedBattery.orderIndex}</p>
             <p className="text-sm text-shade-2">Kapasite: {selectedBattery.capacityKwh} kWh</p>
-            <p className="text-base">Paylaşımlı depo doluluğu: %{selectedBattery.chargePct}</p>
+            <p className={`text-base ${selectedBattery.chargePct >= 100 ? 'text-rose-700' : ''}`}>
+              Bu depoda saklı:{' '}
+              {selectedBattery.storedKwh.toLocaleString('tr-TR', {
+                maximumFractionDigits: 2,
+              })}{' '}
+              kWh · %{selectedBattery.chargePct}
+              {selectedBattery.chargePct >= 100 ? ' — depo dolu' : ''}
+            </p>
           </div>
         )}
       </Modal>

@@ -221,7 +221,7 @@ function DashboardScreen() {
                 </p>
               )}
               {batteryFull && (
-                <p className="text-[11px] font-bold text-blossom-deep mt-1">
+                <p className="text-[11px] font-bold text-rose-700 mt-1">
                   Depo dolu — yeni batarya alın ya da enerjilerinizi satın.
                 </p>
               )}
