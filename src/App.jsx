@@ -1,6 +1,8 @@
 import React from "react";
 import useGameStore from "./store/useGameStore";
 import { motion } from "framer-motion";
+import Button from "./components/Button";
+import { Sun, Battery, Settings } from "lucide-react";
 
 function App() {
   const { 
@@ -120,6 +122,30 @@ function App() {
         >
           <span className="font-bold">🎮 Game Started! Tap Generate to earn energy & coins.</span>
         </motion.div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">Button Variants</h2>
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4 justify-center">
+              <Button variant="primary" onClick={() => alert('Primary clicked!')}>
+                Primary Button
+              </Button>
+              <Button variant="secondary" onClick={() => alert('Secondary clicked!')}>
+                Secondary Button
+              </Button>
+            </div>
+            <div className="flex gap-4 justify-center">
+              <Button variant="peach" onClick={() => alert('Peach clicked!')}>
+                Peach Button
+              </Button>
+            </div>
+            <div className="flex gap-4 justify-center">
+              <Button icon={Sun} variant="primary" onClick={() => alert('Icon Primary!')} />
+              <Button icon={Battery} variant="secondary" onClick={() => alert('Icon Secondary!')} />
+              <Button icon={Settings} variant="peach" onClick={() => alert('Icon Peach!')} />
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>
