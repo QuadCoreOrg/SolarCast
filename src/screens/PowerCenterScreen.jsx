@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { Compass, Gauge, Settings, Store, Zap } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
+import Modal from '../components/Modal'
 import PowerHub from '../components/PowerHub'
 
 function PowerCenterScreen() {
@@ -10,15 +12,22 @@ function PowerCenterScreen() {
   const level = useGameStore((s) => s.level)
   const inventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
+  const unlockedSlots = useGameStore((s) => s.unlockedSlots)
   const filledSlots = inventory.length
+  const [selectedItemId, setSelectedItemId] = useState(null)
 
   const openUpgradeModal = (itemId) => {
-    console.log('openUpgradeModal:', itemId)
+    setSelectedItemId(itemId)
   }
 
   const openMarketModal = () => {
-    console.log('openMarketModal')
+    setScreen('market')
   }
+
+  const selectedItem = useMemo(
+    () => inventory.find((item) => item.id === selectedItemId) || null,
+    [inventory, selectedItemId],
+  )
 
   return (
     <motion.div
@@ -35,13 +44,32 @@ function PowerCenterScreen() {
             <div className="flex items-center justify-between mb-3">
               <h1 className="font-black text-2xl">Güç Merkezi</h1>
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-3 py-1 text-xs font-black">
-                {filledSlots}/{maxSlots} Yuva Dolu
+                {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
             <PowerHub openUpgradeModal={openUpgradeModal} openMarketModal={openMarketModal} />
           </article>
         </section>
       </main>
+
+      <Modal
+        isOpen={Boolean(selectedItem)}
+        onClose={() => setSelectedItemId(null)}
+        title={selectedItem ? selectedItem.name : 'Eşya Detayı'}
+      >
+        {selectedItem && (
+          <div className="space-y-2 font-bold text-shade">
+            <p className="text-sm text-shade-2">Tip: {selectedItem.type === 'panel' ? 'Güneş Paneli' : 'Batarya'}</p>
+            {selectedItem.type === 'panel' && (
+              <p className="text-base">Üretim: +{selectedItem.outputPerSec ?? 0}⚡/sn</p>
+            )}
+            {selectedItem.type === 'battery' && (
+              <p className="text-base">Doluluk: %{selectedItem.chargePct ?? 0}</p>
+            )}
+            <p className="text-sm text-shade-soft">Yükseltme ve detay aksiyonları yakında burada olacak.</p>
+          </div>
+        )}
+      </Modal>
 
       <nav className="shrink-0 border-t-4 border-slate-900 bg-background p-3">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2">

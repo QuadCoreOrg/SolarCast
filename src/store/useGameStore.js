@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import GAME_CONFIG from '../config/gameConfig';
 
 const useGameStore = create((set) => ({
   currentScreen: 'how_to',
@@ -12,12 +13,9 @@ const useGameStore = create((set) => ({
   solarPanels: [],
   batteries: [],
   upgrades: [],
-  inventory: [
-    { id: 'panel-ultra-1', type: 'panel', name: 'Ultra Panel', outputPerSec: 15 },
-    { id: 'panel-standard-1', type: 'panel', name: 'Standart Panel', outputPerSec: 9 },
-    { id: 'battery-mega-1', type: 'battery', name: 'Mega Batarya', chargePct: 100 },
-  ],
-  maxSlots: 6,
+  inventory: GAME_CONFIG.powerHub.initialInventory,
+  maxSlots: GAME_CONFIG.powerHub.maxSlots,
+  unlockedSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
 
   dailyGoal: 80,
   currentProgress: 0,
@@ -62,6 +60,9 @@ const useGameStore = create((set) => ({
     solarPanels: [],
     batteries: [],
     upgrades: [],
+    inventory: GAME_CONFIG.powerHub.initialInventory,
+    maxSlots: GAME_CONFIG.powerHub.maxSlots,
+    unlockedSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
     currentProgress: 0,
     selectedCity: ''
   })

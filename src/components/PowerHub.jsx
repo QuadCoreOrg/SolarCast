@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
-import { BatteryCharging, CirclePlus, SunMedium } from 'lucide-react'
+import { BatteryCharging, CirclePlus, Lock, SunMedium } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
 
 function PowerHub({ openUpgradeModal, openMarketModal }) {
   const inventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
+  const unlockedSlots = useGameStore((s) => s.unlockedSlots)
 
   const slots = Array.from({ length: maxSlots }, (_, index) => inventory[index] || null)
 
@@ -18,6 +19,28 @@ function PowerHub({ openUpgradeModal, openMarketModal }) {
     >
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {slots.map((item, slotIndex) => {
+          const isLocked = slotIndex >= unlockedSlots
+
+          if (isLocked) {
+            return (
+              <motion.button
+                key={`locked-${slotIndex}`}
+                type="button"
+                onClick={openMarketModal}
+                whileHover={{ y: -2, scale: 1.01 }}
+                whileTap={{ y: 0, scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+                className="rounded-3xl border-4 border-dashed border-slate-900 bg-shade/10 p-4 shadow-[inset_0_0_0_2px_rgba(42,42,51,0.18)] text-shade flex flex-col items-center justify-center min-h-[172px] cursor-pointer hover:bg-blossom/50"
+              >
+                <div className="w-14 h-14 rounded-full border-4 border-slate-900 bg-background flex items-center justify-center mb-2">
+                  <Lock className="w-6 h-6" strokeWidth={2.25} />
+                </div>
+                <p className="font-black text-base text-shade-2">Kilitli Yuva</p>
+                <p className="font-bold text-xs text-shade-soft mt-1">Açmak için mağazaya git</p>
+              </motion.button>
+            )
+          }
+
           if (item) {
             const isPanel = item.type === 'panel'
             const statusText = isPanel ? `+${item.outputPerSec ?? 0}⚡/sn` : `%${item.chargePct ?? 0} Full`
