@@ -20,6 +20,12 @@ const useGameStore = create((set) => ({
   dailyGoal: 80,
   currentProgress: 0,
   selectedCity: '',
+  research: {
+    temperedThermalGlass: false,
+    enrichedWafer: false,
+    processedCobalt: false,
+    superconductivePolymer: false,
+  },
 
   addEnergy: (amount) => set((state) => ({ energy: state.energy + amount })),
   consumeEnergy: (amount) => set((state) => ({ energy: Math.max(0, state.energy - amount) })),
@@ -51,6 +57,13 @@ const useGameStore = create((set) => ({
   addUpgrade: (upgrade) => set((state) => ({
     upgrades: [...state.upgrades, upgrade]
   })),
+  unlockResearch: (researchKey) =>
+    set((state) => ({
+      research: {
+        ...state.research,
+        [researchKey]: true,
+      },
+    })),
 
   resetGame: () => set({
     energy: 100,
@@ -64,7 +77,13 @@ const useGameStore = create((set) => ({
     maxSlots: GAME_CONFIG.powerHub.maxSlots,
     unlockedSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
     currentProgress: 0,
-    selectedCity: ''
+    selectedCity: '',
+    research: {
+      temperedThermalGlass: false,
+      enrichedWafer: false,
+      processedCobalt: false,
+      superconductivePolymer: false,
+    },
   })
 }));
 
