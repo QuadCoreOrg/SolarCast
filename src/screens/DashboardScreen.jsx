@@ -1,10 +1,19 @@
 import { motion } from 'framer-motion'
-import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Wallet } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Wallet, ZapOff } from 'lucide-react'
 import { BATTERY_DEF_BY_TYPE_ID, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
+import Modal from '../components/Modal'
+import PercentSellSelector from '../components/PercentSellSelector'
 import { getCitySolarStats } from '../utils/citySolarStats'
+import { getSpotEnergyPriceCoinPerKwh, getSpotEnergyTrendLabel } from '../utils/spotEnergyPrice'
+
+function clampSellPct(p) {
+  const snapped = Math.round(Number(p) / 5) * 5
+  return Math.min(100, Math.max(5, snapped))
+}
 
 function DashboardScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
@@ -12,6 +21,8 @@ function DashboardScreen() {
   const level = useGameStore((s) => s.level)
   const selectedCity = useGameStore((s) => s.selectedCity)
   const gameLoopMode = useGameStore((s) => s.gameLoopMode)
+  const setGameLoopMode = useGameStore((s) => s.setGameLoopMode)
+  const sellSpotEnergy = useGameStore((s) => s.sellSpotEnergy)
   const day = useGameStore((s) => s.day)
   const hour = useGameStore((s) => s.hour)
   const isDayActive = useGameStore((s) => s.isDayActive)
@@ -48,6 +59,86 @@ function DashboardScreen() {
   const cityName = selectedCity || 'Konya'
   const cityStats = getCitySolarStats(cityName)
 
+  const liveSpotCoinPerKwh = getSpotEnergyPriceCoinPerKwh({
+    day,
+    hour,
+    cityName,
+  })
+  const liveTrend = getSpotEnergyTrendLabel({ day, hour, cityName })
+
+  const [sellModalOpen, setSellModalOpen] = useState(false)
+  const [sellPct, setSellPct] = useState(40)
+  const [frozenSpotCoinPerKwh, setFrozenSpotCoinPerKwh] = useState(null)
+  const [sellError, setSellError] = useState('')
+  const loopModeBeforeSellRef = useRef(null)
+
+  const closeSellModal = useCallback(() => {
+    setSellModalOpen(false)
+    setFrozenSpotCoinPerKwh(null)
+    setSellError('')
+    const restore = loopModeBeforeSellRef.current
+    loopModeBeforeSellRef.current = null
+    if (restore === 'pause' || restore === 'play' || restore === 'fast') {
+      setGameLoopMode(restore)
+    }
+  }, [setGameLoopMode])
+
+  const openSellModal = useCallback(() => {
+    if (!hasBatteryStorage || currentEnergy <= 0) return
+    setSellError('')
+    const spot = getSpotEnergyPriceCoinPerKwh({
+      day,
+      hour,
+      cityName,
+    })
+    loopModeBeforeSellRef.current = gameLoopMode
+    setFrozenSpotCoinPerKwh(spot)
+    setGameLoopMode('pause')
+    setSellPct((prev) => clampSellPct(prev))
+    setSellModalOpen(true)
+  }, [
+    cityName,
+    currentEnergy,
+    day,
+    gameLoopMode,
+    hasBatteryStorage,
+    hour,
+    setGameLoopMode,
+  ])
+
+  useEffect(
+    () => () => {
+      const restore = loopModeBeforeSellRef.current
+      loopModeBeforeSellRef.current = null
+      if (restore === 'pause' || restore === 'play' || restore === 'fast') {
+        setGameLoopMode(restore)
+      }
+    },
+    [setGameLoopMode],
+  )
+
+  const previewKwhSold =
+    hasBatteryStorage && currentEnergy > 0 ? Math.round((currentEnergy * (sellPct / 100)) * 1000) / 1000 : 0
+  const previewCoinsEarned =
+    frozenSpotCoinPerKwh != null && previewKwhSold > 0
+      ? Math.round(previewKwhSold * frozenSpotCoinPerKwh)
+      : 0
+
+  const handleConfirmSell = () => {
+    if (frozenSpotCoinPerKwh == null) return
+    const result = sellSpotEnergy({
+      percentSold: sellPct,
+      lockedPriceCoinPerKwh: frozenSpotCoinPerKwh,
+    })
+    if (!result.ok) {
+      setSellError(result.reason || 'Satış gerçekleşmedi.')
+      return
+    }
+    closeSellModal()
+  }
+
+  const canOpenSellModal = hasBatteryStorage && currentEnergy > 0
+
   const dashboardData = {
     inventory: {
       panelCount: activePanels.length,
@@ -66,8 +157,8 @@ function DashboardScreen() {
       efficiencyPct: cityStats ? cityStats.efficiencyPct : 72,
     },
     market: {
-      instantPrice: 2.86,
-      trend: '+%3.4',
+      instantPrice: liveSpotCoinPerKwh,
+      trend: liveTrend,
       volatility: 'Orta',
     },
     game: {
@@ -217,10 +308,26 @@ function DashboardScreen() {
 
             <div className="space-y-3">
               <article className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
-                <h2 className="font-black text-base mb-2">Anlık Enerji Piyasası</h2>
-                <p className="text-2xl font-black">{dashboardData.market.instantPrice.toFixed(2)} ₺/kWh</p>
+                <h2 className="font-black text-base mb-2">Anlık enerji piyasası</h2>
+                <p className="text-[11px] font-bold text-shade-2 mb-1">
+                  {isDayActive
+                    ? `Gün içi kotasyon · simülasyon saati ${String(hour).padStart(2, '0')}:00`
+                    : 'Satış modalında süre beklerken fiyat kilitlenecek'}
+                </p>
+                <p className="text-2xl font-black">{dashboardData.market.instantPrice.toFixed(2)} Coin/kWh</p>
                 <p className="text-sm font-black mt-1">Trend: {dashboardData.market.trend}</p>
                 <p className="text-xs font-black mt-1">Volatilite: {dashboardData.market.volatility}</p>
+                <button
+                  type="button"
+                  disabled={!canOpenSellModal}
+                  onClick={openSellModal}
+                  className="mt-3 w-full rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none hover:bg-sunlit/70 transition-colors disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[4px_4px_0px_0px_var(--shade)]"
+                >
+                  Enerji sat
+                </button>
+                {!hasBatteryStorage && (
+                  <p className="text-[11px] font-bold text-shade-2 mt-2">Depolama yok — önce batarya takın.</p>
+                )}
               </article>
               <article className="rounded-2xl border-4 border-slate-900 bg-breeze-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
                 <h2 className="font-black text-base mb-2">Oyun İçi Zaman / Döngü</h2>
@@ -232,6 +339,84 @@ function DashboardScreen() {
           </div>
         </section>
       </motion.main>
+
+      <Modal
+        isOpen={sellModalOpen}
+        onClose={closeSellModal}
+        title="Enerji satışı"
+        className="max-w-lg"
+      >
+        {frozenSpotCoinPerKwh != null ? (
+          <div className="space-y-4 font-bold text-shade">
+            <div className="rounded-2xl border-3 border-slate-900 bg-breeze/50 p-3 space-y-3">
+              <div>
+                <p className="text-xs font-black text-shade-2 uppercase tracking-wide">Enerji başı maliyet</p>
+                <p className="text-xl font-black mt-1">
+                  {frozenSpotCoinPerKwh.toLocaleString('tr-TR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{' '}
+                  Coin/kWh
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border-3 border-slate-900 bg-background p-3 space-y-1">
+              <p className="text-xs font-black text-shade-2">Şu an depoda</p>
+              <p className="text-lg font-black">
+                {currentEnergy.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} kWh
+              </p>
+              <div className="h-3 rounded-full border-2 border-slate-900 bg-breeze overflow-hidden mt-2">
+                <div
+                  className="h-full bg-sprout-deep"
+                  style={{
+                    width: batteryCapacity > 0 ? `${Math.min(100, Math.round((currentEnergy / batteryCapacity) * 100))}%` : '0%',
+                  }}
+                />
+              </div>
+            </div>
+
+            <PercentSellSelector valuePct={sellPct} onChangePct={setSellPct} />
+
+            <div className="rounded-2xl border-3 border-slate-900 bg-sprout/50 p-3 space-y-1">
+              <p className="text-xs font-black text-shade-2">Özet</p>
+              <p className="text-sm font-black">
+                ≈{' '}
+                {previewKwhSold.toLocaleString('tr-TR', {
+                  maximumFractionDigits: 2,
+                })}{' '}
+                kWh → ≈{' '}
+                {previewCoinsEarned.toLocaleString('tr-TR')} Coin
+              </p>
+            </div>
+
+            {sellError && (
+              <p className="text-xs font-bold text-rose-700 flex items-center gap-1">
+                <ZapOff className="w-3.5 h-3.5 shrink-0" />
+                {sellError}
+              </p>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+              <button
+                type="button"
+                onClick={closeSellModal}
+                className="rounded-2xl border-4 border-slate-900 bg-background px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSell}
+                disabled={previewKwhSold <= 0}
+                className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none disabled:opacity-45 disabled:cursor-not-allowed"
+              >
+                Satışı onayla
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
 
       <TabBar activeScreen="dashboard" onChange={setScreen} />
     </div>

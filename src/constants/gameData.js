@@ -106,5 +106,10 @@ export const BATTERY_DEF_BY_TYPE_ID = Object.fromEntries(
 /** Panel temizlik maliyeti (coin) */
 export const PANEL_CLEAN_COST = 50
 
+/** Anlık enerji spot piyasası: taban Coin / kWh (oyun ekonomisi ile tutarlı) */
+export const SPOT_ENERGY_BASE_COIN_PER_KWH = 2.86
+/** Güne göre +/- salınım (Coin cinsinden, sinüs ile modüle edilir) */
+export const SPOT_ENERGY_HOURLY_SWING_COIN = 0.55
+
 /** Panel ve depolama yuvalarını ortak açma maliyeti (coin) */
 export const HUB_SLOT_UNLOCK_COST = 1200

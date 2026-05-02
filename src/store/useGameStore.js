@@ -474,6 +474,42 @@ const useGameStore = create(
         return { ok: false, reason: 'Geçersiz tip' }
       },
 
+      /**
+       * Bataryadan depolu enerji satışı (modalda sabitlenen spot Coin/kWh ile).
+       * @param {{ percentSold: number, lockedPriceCoinPerKwh: number }}
+       * @returns {{ ok: true, kwhSold: number, coinsEarned: number } | { ok: false, reason: string }}
+       */
+      sellSpotEnergy: ({ percentSold, lockedPriceCoinPerKwh }) => {
+        const state = get()
+        const pct = typeof percentSold === 'number' ? percentSold : 0
+        if (pct <= 0 || pct > 100) {
+          return { ok: false, reason: 'Geçersiz yüzde' }
+        }
+        const available = state.currentEnergy ?? 0
+        if (available <= 0) {
+          return { ok: false, reason: 'Satılacak enerji yok' }
+        }
+
+        let kwhSold = available * (pct / 100)
+        kwhSold = Math.round(kwhSold * 1000) / 1000
+        if (kwhSold <= 0) return { ok: false, reason: 'Seçilen miktar çok küçük' }
+        kwhSold = Math.min(kwhSold, Math.round(available * 1000) / 1000)
+
+        const price =
+          typeof lockedPriceCoinPerKwh === 'number' ? lockedPriceCoinPerKwh : 0
+        if (!(price > 0)) return { ok: false, reason: 'Geçersiz fiyat' }
+
+        const coinsEarned = Math.round(kwhSold * price)
+        const nextEnergy = Math.max(0, Math.round((available - kwhSold) * 1000) / 1000)
+
+        set({
+          coins: state.coins + coinsEarned,
+          currentEnergy: nextEnergy,
+          ...touch(),
+        })
+        return { ok: true, kwhSold, coinsEarned }
+      },
+
       addCoins: (amount) =>
         set((state) => ({
           coins: state.coins + amount,
