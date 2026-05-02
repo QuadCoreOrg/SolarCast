@@ -1,4 +1,5 @@
 import { AnimatePresence } from 'framer-motion'
+import useGameLoop from '../hooks/useGameLoop'
 import useGameStore from '../store/useGameStore'
 import HowToScreen from './HowToScreen'
 import CitySelectScreen from './CitySelectScreen'
@@ -10,6 +11,7 @@ import ExploreScreen from './ExploreScreen'
 import SettingsScreen from './SettingsScreen'
 
 function GameContainer() {
+  useGameLoop()
   const currentScreen = useGameStore((state) => state.currentScreen)
 
   return (

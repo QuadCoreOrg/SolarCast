@@ -10,7 +10,7 @@ import SHOP_PRODUCTS from '../constants/shopProducts'
 
 function PowerCenterScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
-  const coins = useGameStore((s) => s.coins)
+  const credits = useGameStore((s) => s.credits)
   const level = useGameStore((s) => s.level)
   const research = useGameStore((s) => s.research)
   const inventory = useGameStore((s) => s.inventory)
@@ -33,7 +33,7 @@ function PowerCenterScreen() {
             product.category === 'panel'
               ? `+${product.productionPerSec}⚡/sn`
               : `Depolama ${product.capacityKwh} kWh`,
-          price: `${product.price.toLocaleString('tr-TR')} Coin`,
+          price: `${product.price.toLocaleString('tr-TR')} Kredi`,
           bg: product.category === 'panel' ? 'bg-sunlit' : 'bg-sprout',
           Icon: product.category === 'panel' ? SunMedium : BatteryCharging,
           outputPerSec: product.category === 'panel' ? (product.productionPerSec ?? 0) : 0,
@@ -48,19 +48,17 @@ function PowerCenterScreen() {
   const [unlockSlotIndex, setUnlockSlotIndex] = useState(null)
 
   useEffect(() => {
+    // Store rehidrasyonu / dış güncellemelerde yerel slot önizlemesini eşitle
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- inventory store senkronu
     setUiInventory(inventory)
   }, [inventory])
 
   const filledSlots = uiInventory.filter(Boolean).length
   const unlockPrice = 1200
-  const canAffordUnlock = coins >= unlockPrice
+  const canAffordUnlock = credits >= unlockPrice
 
   const openUpgradeModal = (itemId) => {
     setSelectedItemId(itemId)
-  }
-
-  const openMarketModal = () => {
-    setScreen('market')
   }
 
   const openEmptySlotPurchaseModal = (slotIndex) => {
@@ -113,14 +111,14 @@ function PowerCenterScreen() {
     () => uiInventory.find((item) => item?.id === selectedItemId) || null,
     [uiInventory, selectedItemId],
   )
-  const selectedEquipment = useMemo(
-    () => equipmentOptions.find((item) => item.key === selectedEquipmentKey) || null,
-    [equipmentOptions, selectedEquipmentKey],
-  )
+  const selectedEquipment =
+    selectedEquipmentKey != null
+      ? equipmentOptions.find((item) => item.key === selectedEquipmentKey) ?? null
+      : null
 
   return (
     <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
-      <Header coins={coins} level={level} />
+      <Header credits={credits} level={level} />
 
       <motion.main
         initial={{ opacity: 0, y: 10 }}
@@ -139,7 +137,6 @@ function PowerCenterScreen() {
             </div>
             <PowerHub
               openUpgradeModal={openUpgradeModal}
-              openMarketModal={openMarketModal}
               onEmptySlotClick={openEmptySlotPurchaseModal}
               onLockedSlotClick={openUnlockModal}
               unlockedSlots={uiUnlockedSlots}
@@ -250,11 +247,11 @@ function PowerCenterScreen() {
           </p>
           <div className="rounded-2xl border-3 border-slate-900 bg-breeze/50 p-3">
             <p className="text-xs text-shade-soft">Açma Bedeli</p>
-            <p className="text-xl font-black">{unlockPrice} Coin</p>
+            <p className="text-xl font-black">{unlockPrice} Kredi</p>
           </div>
           <div className="rounded-2xl border-3 border-slate-900 bg-background p-3">
-            <p className="text-xs text-shade-soft">Mevcut Coin</p>
-            <p className="text-xl font-black">{coins} Coin</p>
+            <p className="text-xs text-shade-soft">Mevcut Kredi</p>
+            <p className="text-xl font-black">{credits} Kredi</p>
           </div>
           {!canAffordUnlock && (
             <p className="text-xs text-rose-700">Yeterli coin yok. Bu yuvayı açmak için daha fazla coin gerekli.</p>
@@ -269,7 +266,7 @@ function PowerCenterScreen() {
               disabled={!canAffordUnlock}
               className="flex-1 rounded-2xl border-4 border-slate-900 bg-sprout px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0 disabled:active:shadow-[3px_3px_0px_0px_var(--shade)]"
             >
-              {unlockPrice} Coin Öde ve Aç
+              {unlockPrice} Kredi Öde ve Aç
             </button>
             <button
               type="button"
