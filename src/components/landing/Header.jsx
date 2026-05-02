@@ -1,4 +1,3 @@
-import { Sun } from "lucide-react";
 import logo from "../../assets/solarcast-logo.png";
 
 function Header({ onPlayClick }) {
@@ -12,8 +11,8 @@ function Header({ onPlayClick }) {
         <div className="flex items-center gap-2">
           <img src={logo} alt="SolarCast" className="w-8 h-8 object-contain" />
           <span className="font-black text-2xl">
-            <span className="text-sunlit-deep">solar</span>
-            <span className="text-shade">cast</span>
+            <span className="text-shade">solar</span>
+            <span className="text-blossom-deep">cast</span>
           </span>
         </div>
 
