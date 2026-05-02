@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BatteryCharging, ShoppingCart, SunMedium } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
@@ -19,6 +19,7 @@ function PowerCenterScreen() {
   const [selectedItemId, setSelectedItemId] = useState(null)
   const [emptySlotModalIndex, setEmptySlotModalIndex] = useState(null)
   const [selectedEquipmentKey, setSelectedEquipmentKey] = useState(null)
+  const [uiInventory, setUiInventory] = useState(inventory)
 
   const equipmentOptions = useMemo(
     () =>
@@ -26,6 +27,7 @@ function PowerCenterScreen() {
         const isLocked = Boolean(product.requiredResearch && !research?.[product.requiredResearch])
         return {
           key: product.id,
+          type: product.category === 'panel' ? 'panel' : 'battery',
           name: product.name,
           sub:
             product.category === 'panel'
@@ -34,6 +36,8 @@ function PowerCenterScreen() {
           price: `${product.price.toLocaleString('tr-TR')} Coin`,
           bg: product.category === 'panel' ? 'bg-sunlit' : 'bg-sprout',
           Icon: product.category === 'panel' ? SunMedium : BatteryCharging,
+          outputPerSec: product.category === 'panel' ? (product.productionPerSec ?? 0) : 0,
+          chargePct: product.category === 'battery' ? 100 : undefined,
           isLocked,
         }
       }).filter((product) => !product.isLocked),
@@ -43,7 +47,11 @@ function PowerCenterScreen() {
   const [uiUnlockedSlots, setUiUnlockedSlots] = useState(unlockedSlots)
   const [unlockSlotIndex, setUnlockSlotIndex] = useState(null)
 
-  const filledSlots = inventory.length
+  useEffect(() => {
+    setUiInventory(inventory)
+  }, [inventory])
+
+  const filledSlots = uiInventory.filter(Boolean).length
   const unlockPrice = 1200
   const canAffordUnlock = coins >= unlockPrice
 
@@ -63,6 +71,8 @@ function PowerCenterScreen() {
 
   const closeEmptySlotPurchaseModal = () => {
     setEmptySlotModalIndex(null)
+  }
+
   const openUnlockModal = (slotIndex) => {
     setUnlockSlotIndex(slotIndex)
   }
@@ -79,9 +89,29 @@ function PowerCenterScreen() {
     closeUnlockModal()
   }
 
+  const handleUiEquipmentPurchase = () => {
+    if (emptySlotModalIndex === null || !selectedEquipment) {
+      return
+    }
+
+    setUiInventory((prev) => {
+      const next = [...prev]
+      next[emptySlotModalIndex] = {
+        id: `ui-${selectedEquipment.key}-${emptySlotModalIndex}`,
+        name: selectedEquipment.name,
+        type: selectedEquipment.type,
+        outputPerSec: selectedEquipment.outputPerSec,
+        chargePct: selectedEquipment.chargePct,
+      }
+      return next
+    })
+
+    closeEmptySlotPurchaseModal()
+  }
+
   const selectedItem = useMemo(
-    () => inventory.find((item) => item.id === selectedItemId) || null,
-    [inventory, selectedItemId],
+    () => uiInventory.find((item) => item?.id === selectedItemId) || null,
+    [uiInventory, selectedItemId],
   )
   const selectedEquipment = useMemo(
     () => equipmentOptions.find((item) => item.key === selectedEquipmentKey) || null,
@@ -113,6 +143,7 @@ function PowerCenterScreen() {
               onEmptySlotClick={openEmptySlotPurchaseModal}
               onLockedSlotClick={openUnlockModal}
               unlockedSlots={uiUnlockedSlots}
+              inventoryItems={uiInventory}
             />
           </article>
         </section>
@@ -194,6 +225,7 @@ function PowerCenterScreen() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
+              onClick={handleUiEquipmentPurchase}
               disabled={!selectedEquipment}
               className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
             >
@@ -206,6 +238,11 @@ function PowerCenterScreen() {
               className="rounded-2xl border-4 border-slate-900 bg-background px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none"
             >
               Kapat
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal isOpen={unlockSlotIndex !== null} onClose={closeUnlockModal} title="Kilit Açma Satın Alımı">
         <div className="space-y-4 font-bold text-shade">
           <p className="text-sm text-shade-2">

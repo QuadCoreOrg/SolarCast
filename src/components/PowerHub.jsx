@@ -2,11 +2,19 @@ import { motion } from 'framer-motion'
 import { BatteryCharging, CirclePlus, Lock, SunMedium } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
 
-function PowerHub({ openUpgradeModal, openMarketModal, onLockedSlotClick, unlockedSlots: unlockedSlotsProp }) {
-  const inventory = useGameStore((s) => s.inventory)
+function PowerHub({
+  openUpgradeModal,
+  openMarketModal,
+  onEmptySlotClick,
+  onLockedSlotClick,
+  unlockedSlots: unlockedSlotsProp,
+  inventoryItems,
+}) {
+  const storeInventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
   const storeUnlockedSlots = useGameStore((s) => s.unlockedSlots)
   const unlockedSlots = unlockedSlotsProp ?? storeUnlockedSlots
+  const inventory = inventoryItems ?? storeInventory
 
   const slots = Array.from({ length: maxSlots }, (_, index) => inventory[index] || null)
 
