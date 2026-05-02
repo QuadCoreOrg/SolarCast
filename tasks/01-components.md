@@ -27,10 +27,10 @@ Bu doküman, SolarCast projesinin ortak UI bileşenlerini `design-system.md` ve 
 
 ### 4. ProgressBar Component (`<ProgressBar />`)
 
-- [ ] Genel kullanıma uygun (Enerji, XP vb.) esnek bar.
-- [ ] **Container:** `w-full h-8 bg-slate-100 border-4 border-slate-900 rounded-full overflow-hidden`
-- [ ] **Fill:** Değere göre (`%` width) artan iç div.
-- [ ] Dolum efekti için Framer Motion ile `layout` veya `animate={{ width: \`\${value}%\` }}` eklenecek.
+- [x] Genel kullanıma uygun (Enerji, XP vb.) esnek bar.
+- [x] **Container:** `w-full h-8 bg-slate-100 border-4 border-slate-900 rounded-full overflow-hidden`
+- [x] **Fill:** Değere göre (`%` width) artan iç div.
+- [x] Dolum efekti için Framer Motion ile `layout` veya `animate={{ width: \`\${value}%\` }}` eklenecek.
 
 ---
 

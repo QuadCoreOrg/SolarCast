@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Button from "./components/Button";
 import Card from "./components/Card";
 import Badge from "./components/Badge";
+import ProgressBar from "./components/ProgressBar";
 import { Sun, Battery, Settings } from "lucide-react";
 
 function App() {
@@ -171,6 +172,16 @@ function App() {
             <Badge color="bg-soft-peach">Achievement</Badge>
             <Badge color="bg-blue-400">New!</Badge>
             <Badge color="bg-orange-400">Top Seller</Badge>
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">ProgressBar Variants</h2>
+          <div className="flex flex-col gap-4">
+            <ProgressBar value={75} max={100} color="mint" showLabel />
+            <ProgressBar value={60} max={100} color="yellow" showLabel />
+            <ProgressBar value={45} max={100} color="peach" showLabel />
+            <ProgressBar value={90} max={100} color="blue" showLabel />
           </div>
         </div>
 
