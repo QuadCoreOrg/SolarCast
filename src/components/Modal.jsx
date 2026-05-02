@@ -19,11 +19,11 @@ function Modal({ isOpen, onClose, title, children, className = '' }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className={`relative bg-white border-4 border-slate-900 rounded-3xl p-6 shadow-[8px_8px_0px_0px_#2A2A33] max-w-md w-full max-h-[80vh] overflow-y-auto ${className}`}
+            className={`relative bg-background border-4 border-shade rounded-3xl p-6 shadow-[8px_8px_0px_0px_var(--shade)] max-w-md w-full max-h-[80vh] overflow-y-auto ${className}`}
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 bg-breeze border-4 border-slate-900 rounded-full p-2 shadow-[3px_3px_0px_0px_#2A2A33] active:translate-y-1 active:shadow-none transition-all hover:bg-blossom"
+              className="absolute top-4 right-4 bg-breeze border-4 border-shade rounded-full p-2 shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none transition-all hover:bg-blossom"
             >
               <X className="w-5 h-5 text-shade" />
             </button>

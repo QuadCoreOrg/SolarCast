@@ -57,7 +57,7 @@ function ToastContainer() {
                       animate={animation.animate}
                       exit={animation.exit}
                       transition={{ type: 'spring', stiffness: 300 }}
-                      className={`border-4 border-slate-900 rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_#2A2A33] font-bold text-shade cursor-pointer ${colorClasses[toast.type] || colorClasses.success}`}
+                      className={`border-4 border-shade rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_var(--shade)] font-bold text-shade cursor-pointer ${colorClasses[toast.type] || colorClasses.success}`}
                       onClick={() => removeToast(toast.id)}
                     >
                       {toast.message}

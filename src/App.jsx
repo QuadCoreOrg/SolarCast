@@ -10,7 +10,7 @@ function GameView() {
           Yakında burada oyun olacak!
         </p>
         <button
-          className="border-4 border-slate-900 rounded-full font-bold px-6 py-3 bg-sunlit-deep shadow-[4px_4px_0px_0px_#2A2A33] hover:opacity-90 transition-opacity cursor-pointer"
+          className="border-4 border-shade rounded-full font-bold px-6 py-3 bg-sunlit-deep shadow-[4px_4px_0px_0px_var(--shade)] hover:opacity-90 transition-opacity cursor-pointer"
           onClick={() => window.location.reload()}
         >
           ← Landing Page'e Dön

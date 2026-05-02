@@ -1,45 +1,59 @@
 @import "tailwindcss";
 
-/* SolarCast — resmi renk teması (paper + blossom / sprout / breeze / sunlit + ink) */
-@theme {
-  --color-background: #fffdf7;
-  --color-border: #e4e2da;
-  --color-shade: #2a2a33;
-  --color-shade-2: #555566;
-  --color-shade-soft: #8a8a99;
+/*
+ * SolarCast — resmi renk teması (paper + blossom / sprout / breeze / sunlit + ink).
+ * Tek kaynak: :root. Tailwind `@theme` aynı değişkenlere bağlanır.
+ */
 
-  --color-blossom: #ffd3e2;
-  --color-blossom-deep: #ff8fb3;
-
-  --color-sprout: #c8f3cc;
-  --color-sprout-deep: #6ad47a;
-
-  --color-breeze: #cdeaff;
-  --color-breeze-deep: #6bbff2;
-
-  --color-sunlit: #ffef9e;
-  --color-sunlit-deep: #f6c944;
-}
-
-/* Aynı palet — vanilla CSS / inline style için */
 :root {
+  /* 🌸 Pink */
   --blossom: #ffd3e2;
   --blossom-deep: #ff8fb3;
+
+  /* 🌿 Green */
   --sprout: #c8f3cc;
   --sprout-deep: #6ad47a;
+
+  /* 🌊 Blue */
   --breeze: #cdeaff;
   --breeze-deep: #6bbff2;
+
+  /* 🌕 Yellow */
   --sunlit: #ffef9e;
   --sunlit-deep: #f6c944;
+
+  /* 🪵 Neutral / Ink */
   --shade: #2a2a33;
   --shade-2: #555566;
   --shade-soft: #8a8a99;
+
+  /* 📄 Paper / Background */
   --background: #fffdf7;
   --border: #e4e2da;
 }
 
+@theme inline {
+  --color-blossom: var(--blossom);
+  --color-blossom-deep: var(--blossom-deep);
+  --color-sprout: var(--sprout);
+  --color-sprout-deep: var(--sprout-deep);
+  --color-breeze: var(--breeze);
+  --color-breeze-deep: var(--breeze-deep);
+  --color-sunlit: var(--sunlit);
+  --color-sunlit-deep: var(--sunlit-deep);
+  --color-shade: var(--shade);
+  --color-shade-2: var(--shade-2);
+  --color-shade-soft: var(--shade-soft);
+  --color-background: var(--background);
+  --color-border: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   background-color: var(--background);
   color: var(--shade);
 }

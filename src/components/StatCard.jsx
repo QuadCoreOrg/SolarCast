@@ -13,7 +13,7 @@ function StatCard({ icon: Icon, label, value, color = 'yellow', className = '' }
     <Card variant="dashboard" className={`p-3 ${className}`}>
       <div className="flex items-center gap-3">
         <div
-          className={`p-2 rounded-full ${colorClasses[color] || colorClasses.yellow} border-4 border-slate-900`}
+          className={`p-2 rounded-full ${colorClasses[color] || colorClasses.yellow} border-4 border-shade`}
         >
           {Icon && <Icon className="w-5 h-5" />}
         </div>

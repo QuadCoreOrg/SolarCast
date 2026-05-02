@@ -28,7 +28,7 @@ function FooterSection({ onPlayClick }) {
               href={GITHUB_REPO}
               target="_blank"
               rel="noopener noreferrer"
-              className="border-4 border-slate-900 rounded-full font-bold text-lg px-8 py-4 bg-background shadow-[4px_4px_0px_0px_#2A2A33] hover:bg-border transition-colors flex items-center justify-center gap-2 text-shade"
+              className="border-4 border-shade rounded-full font-bold text-lg px-8 py-4 bg-background shadow-[4px_4px_0px_0px_var(--shade)] hover:bg-border transition-colors flex items-center justify-center gap-2 text-shade"
             >
               <Star className="w-5 h-5" /> GitHub'da Yıldız Ver
             </a>
@@ -37,7 +37,7 @@ function FooterSection({ onPlayClick }) {
       </section>
 
       {/* Bottom Footer */}
-      <footer className="bg-border/40 border-t-4 border-slate-900 text-shade-2 py-6 px-4">
+      <footer className="bg-border/40 border-t-4 border-shade text-shade-2 py-6 px-4">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Zap width={28} height={28} className="text-sunlit-deep" />

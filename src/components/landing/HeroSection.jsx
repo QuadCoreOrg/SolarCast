@@ -34,9 +34,9 @@ function HeroSection({ onPlayClick }) {
           <span
             style={{
               color: "#FFFFFF",
-              WebkitTextStroke: "4px #2A2A33",
+              WebkitTextStroke: "4px var(--shade)",
               paintOrder: "stroke fill",
-              textShadow: "0 8px 0 #2A2A33",
+              textShadow: "0 8px 0 var(--shade)",
             }}
           >
             solar<span className="text-blossom-deep">cast</span>
@@ -75,7 +75,7 @@ function HeroSection({ onPlayClick }) {
                 .getElementById("howto")
                 ?.scrollIntoView({ behavior: "smooth" })
             }
-            className="border-4 border-slate-900 rounded-full font-bold px-6 py-3 bg-white/50 backdrop-blur-sm shadow-[4px_4px_0px_0px_#2A2A33] hover:bg-white/70 transition-colors cursor-pointer text-shade flex items-center justify-center gap-2"
+            className="border-4 border-shade rounded-full font-bold px-6 py-3 bg-background/65 backdrop-blur-sm shadow-[4px_4px_0px_0px_var(--shade)] hover:bg-background transition-colors cursor-pointer text-shade flex items-center justify-center gap-2"
           >
             Nasıl Çalışır?
           </button>

@@ -22,7 +22,7 @@ function ContactSection() {
           rel="noopener noreferrer"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="inline-flex items-center gap-3 bg-shade text-background border-4 border-slate-900 rounded-full font-bold px-8 py-3 shadow-[4px_4px_0px_0px_#555566] mb-10 hover:bg-shade-2 transition-colors"
+          className="inline-flex items-center gap-3 bg-shade text-background border-4 border-shade rounded-full font-bold px-8 py-3 shadow-[4px_4px_0px_0px_var(--shade-2)] mb-10 hover:bg-shade-2 transition-colors"
         >
           <GitFork className="w-5 h-5" />
           GitHub'da İncele
@@ -41,9 +41,9 @@ function ContactSection() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
               whileHover={{ scale: 1.04 }}
-              className="bg-background border-4 border-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_#2A2A33] cursor-pointer flex flex-col items-center gap-3 hover:bg-breeze-deep/10 transition-colors"
+              className="bg-background border-4 border-shade rounded-2xl p-5 shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer flex flex-col items-center gap-3 hover:bg-breeze-deep/10 transition-colors"
             >
-              <div className="w-12 h-12 bg-breeze-deep border-4 border-slate-900 rounded-full flex items-center justify-center font-black text-shade text-lg">
+              <div className="w-12 h-12 bg-breeze-deep border-4 border-shade rounded-full flex items-center justify-center font-black text-shade text-lg">
                 {member.name[0]}
               </div>
               <div>

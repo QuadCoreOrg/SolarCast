@@ -8,7 +8,7 @@ const colorClasses = {
 };
 
 const Toast = ({ message, type = 'success', isVisible, onClose }) => {
-  const toastClasses = `border-4 border-slate-900 rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_#2A2A33] font-bold text-shade ${colorClasses[type] || colorClasses.success}`;
+  const toastClasses = `border-4 border-shade rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_var(--shade)] font-bold text-shade ${colorClasses[type] || colorClasses.success}`;
 
   return (
     <AnimatePresence>

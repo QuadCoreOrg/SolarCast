@@ -1,10 +1,10 @@
 const variants = {
-  dashboard: 'bg-white',
+  dashboard: 'bg-background',
   accent: 'bg-breeze',
 };
 
 const baseClasses =
-  'border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#2A2A33]';
+  'border-4 border-shade rounded-3xl p-6 shadow-[6px_6px_0px_0px_var(--shade)]';
 
 function Card({ children, variant = 'dashboard', className = '', ...props }) {
   const variantClasses = variants[variant] || variants.dashboard;

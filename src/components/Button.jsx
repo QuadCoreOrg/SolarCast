@@ -8,7 +8,7 @@ const variants = {
 };
 
 const baseClasses =
-  'border-4 border-slate-900 rounded-full font-bold text-shade shadow-[4px_4px_0px_0px_#2A2A33]';
+  'border-4 border-shade rounded-full font-bold text-shade shadow-[4px_4px_0px_0px_var(--shade)]';
 
 function Button({
   children,

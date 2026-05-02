@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 
 const containerClasses =
-  'w-full h-8 bg-border border-4 border-slate-900 rounded-full overflow-hidden';
+  'w-full h-8 bg-border border-4 border-shade rounded-full overflow-hidden';
 
 const colorClasses = {
   mint: 'bg-sprout-deep',

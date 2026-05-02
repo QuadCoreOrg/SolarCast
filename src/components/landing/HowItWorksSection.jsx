@@ -49,7 +49,7 @@ function HowItWorksSection() {
               <Card variant="dashboard" className="flex-1 text-left w-full">
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-12 h-12 ${step.color} border-4 border-slate-900 rounded-full flex items-center justify-center font-black flex-shrink-0`}
+                    className={`w-12 h-12 ${step.color} border-4 border-shade rounded-full flex items-center justify-center font-black flex-shrink-0`}
                   >
                     {step.number}
                   </div>
@@ -75,10 +75,10 @@ function HowItWorksSection() {
           >
             <Card
               variant="accent"
-              className="text-left border-4 border-slate-900"
+              className="text-left border-4 border-shade"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-breeze-deep border-4 border-slate-900 rounded-full flex items-center justify-center font-black flex-shrink-0">
+                <div className="w-12 h-12 bg-breeze-deep border-4 border-shade rounded-full flex items-center justify-center font-black flex-shrink-0">
                   4
                 </div>
                 <div>
