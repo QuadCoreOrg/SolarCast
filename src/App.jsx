@@ -2,6 +2,7 @@ import React from "react";
 import useGameStore from "./store/useGameStore";
 import { motion } from "framer-motion";
 import Button from "./components/Button";
+import Card from "./components/Card";
 import { Sun, Battery, Settings } from "lucide-react";
 
 function App() {
@@ -144,6 +145,20 @@ function App() {
               <Button icon={Battery} variant="secondary" onClick={() => alert('Icon Secondary!')} />
               <Button icon={Settings} variant="peach" onClick={() => alert('Icon Peach!')} />
             </div>
+          </div>
+        </div>
+
+        <div className="border-t-4 border-slate-900 pt-6 mt-6">
+          <h2 className="font-black text-2xl mb-4 text-center">Card Variants</h2>
+          <div className="flex flex-col gap-4">
+            <Card variant="dashboard">
+              <h3 className="font-bold text-xl mb-2">Dashboard Card</h3>
+              <p className="text-slate-600">This is a white dashboard card with shadow.</p>
+            </Card>
+            <Card variant="accent">
+              <h3 className="font-bold text-xl mb-2">Accent Card</h3>
+              <p className="text-slate-600">This is a soft peach accent card with shadow.</p>
+            </Card>
           </div>
         </div>
 

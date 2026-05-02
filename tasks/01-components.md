@@ -14,10 +14,10 @@ Bu doküman, SolarCast projesinin ortak UI bileşenlerini `design-system.md` ve 
 
 ### 2. Card Component (`<Card />`)
 
-- [ ] `variant` prop'u alacak (dashboard, accent).
-- [ ] **Dashboard:** `bg-white border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]`
-- [ ] **Accent:** `bg-soft-peach` tabanlı aynı tasarım.
-- [ ] İçerik render edebilmesi için `children` prop'u alacak.
+- [x] `variant` prop'u alacak (dashboard, accent).
+- [x] **Dashboard:** `bg-white border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]`
+- [x] **Accent:** `bg-soft-peach` tabanlı aynı tasarım.
+- [x] İçerik render edebilmesi için `children` prop'u alacak.
 
 ### 3. Badge Component (`<Badge />`)
 
