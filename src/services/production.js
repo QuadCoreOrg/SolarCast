@@ -1,90 +1,99 @@
 import cities from '../data/cities.json'
 
 /**
- * Güne göre güneş hattı irradiance modeli — `gti_used` W/m² (oyun matematiği).
- * Gerçek saat başı meteoroloji yerine seçili şehir `cities.json` tahmin özeti ile sentezlenir (harici endpoint gerekmez).
+ * Oyundaki seçili güne ilişkin saat başı güneş paneli irradiance ve güç özeti — Open-Meteo Archive (`global_tilted_irradiance`, `temperature_2m`).
+ * Oyun içi yıl nerede olursa olsun arşiv sorgusu 2024 aynı ay-gününe sabittir (29 Şubat → 28 Şubat).
  *
- * Üretilen her eleman: `{ hour: 0..23, gti_used: number }`.
+ * Üretilen her eleman: `{ hour: 0..23, gti_used, power_watts, temp_used, cloud_cover, sunshine_duration_s }`.
+ * `power_watts` için: `panelArea * efficiency * GTI`; sıcaklık >25°C ise her derece için %0.4 oranında ham güç düşüşü.
  *
- * Elektrik gücü (kW): (panel_alanı_m²) × verim × (gti_used / 1000)
+ * // TODO(Zustand): panelArea ve efficiency için store varsayılanlarını oluşturup options ile birleştir.
  *
  * @param {string | null | undefined} cityName
- * @param {{ forecastDayIndex?: number }} [options]
- * @returns {Promise<Array<{ hour: number, gti_used: number }>>}
+ * @param {{
+ *   gameDate?: Date | string | number,
+ *   panelArea?: number,
+ *   efficiency?: number,
+ * }} [options]
+ * @returns {Promise<Array<{ hour: number, gti_used: number, power_watts: number, temp_used: number, cloud_cover: number, sunshine_duration_s: number }>>}
  */
 export async function calculateGameDayProduction(cityName, options = {}) {
-  const forecastDayIndex = options.forecastDayIndex ?? 0
-  await Promise.resolve()
+  const panelArea = options.panelArea ?? 1
+  const efficiency = options.efficiency ?? 0.2
 
-  const city = typeof cityName === 'string'
-    ? cities.find((c) => c.il === cityName)
-    : undefined
+  const city = typeof cityName === 'string' ? cities.find((c) => c.il === cityName) : undefined
+  const lat = typeof city?.enlem === 'number' ? city.enlem : 39.9208
+  const lon = typeof city?.boylam === 'number' ? city.boylam : 32.8541
 
-  const day = city?.tahmin_3_gun?.[forecastDayIndex]
+  const baseDate = options.gameDate ? new Date(options.gameDate) : new Date()
+  let month = String(baseDate.getMonth() + 1).padStart(2, '0')
+  let day = String(baseDate.getDate()).padStart(2, '0')
+  if (month === '02' && day === '29') day = '28'
+  const targetDate = `2024-${month}-${day}`
 
-  /** @type {Date} */
-  let sunrise
-  /** @type {Date} */
-  let sunset
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    start_date: targetDate,
+    end_date: targetDate,
+    hourly: 'temperature_2m,global_tilted_irradiance,cloud_cover,sunshine_duration',
+    timezone: 'auto',
+  })
+  const url = `https://archive-api.open-meteo.com/v1/archive?${params.toString()}`
 
-  if (day?.['gün_doğumu'] && day?.['gün_batımı']) {
-    sunrise = new Date(day['gün_doğumu'])
-    sunset = new Date(day['gün_batımı'])
-  } else {
-    const base = new Date()
-    sunrise = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 6, 0, 0)
-    sunset = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 19, 0, 0)
-  }
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`API Hatası: ${response.status}`)
+    const data = await response.json()
 
-  const rainMm = typeof day?.yagis_mm === 'number' ? day.yagis_mm : 0
-  const havaCode = typeof day?.hava_kodu === 'number' ? day.hava_kodu : 0
-  const precipitationPenalty = Math.min(0.75, rainMm / 42)
-  const cloudPenalty =
-    havaCode >= 95
-      ? 0.14
-      : havaCode >= 80
-        ? 0.1
-        : havaCode >= 70
-          ? 0.07
-          : havaCode >= 60
-            ? 0.05
-            : havaCode >= 51
-              ? 0.04
-              : 0
+    const gtiArr = data?.hourly?.global_tilted_irradiance
+    const tempArr = data?.hourly?.temperature_2m
+    const cloudArr = data?.hourly?.cloud_cover
+    const sunArr = data?.hourly?.sunshine_duration
 
-  /** Enlem ile tepeye göre yaklaşım (W/m²) */
-  const lat = typeof city?.enlem === 'number' ? city.enlem : 39
-  const latitudeFactor = 1 + Math.cos(((lat - 36) / 45) * Math.PI) * 0.12
-  const clearnessIndex = Math.max(0.18, 1 - precipitationPenalty - cloudPenalty)
-
-  const riseH = sunrise.getHours() + sunrise.getMinutes() / 60
-  const setH = sunset.getHours() + sunset.getMinutes() / 60
-
-  /** Tepe sıcak ortam daha iyi yüzey sıcaklığı — çok küçük modül sıcaklık kaydırması */
-  const temp = typeof day?.maks_sicaklik_c === 'number' ? day.maks_sicaklik_c : 22
-  const thermalFactor = Math.max(0.92, 1 - Math.max(0, temp - 24) * 0.008)
-
-  const peakGti = Math.min(980, 820 * latitudeFactor * clearnessIndex * thermalFactor)
-
-  const hourly = []
-
-  for (let hour = 0; hour < 24; hour += 1) {
-    let gti_used = 0
-    const h = hour + 0.5
-
-    if (h > riseH && h < setH) {
-      const u = (h - riseH) / Math.max(0.5, setH - riseH)
-      const shape = Math.sin(Math.PI * u)
-      const edgeSoft = riseH <= h && h <= riseH + 0.85 ? Math.min(1, (h - riseH) / 0.85)
-        : setH >= h && h >= setH - 0.85 ? Math.min(1, (setH - h) / 0.85) : 1
-      gti_used = peakGti * shape * edgeSoft
+    if (!Array.isArray(gtiArr) || !Array.isArray(tempArr)) {
+      throw new Error('API yanıtında hourly sıraları eksik')
     }
 
-    hourly.push({
-      hour,
-      gti_used: Math.round(gti_used * 10) / 10,
-    })
-  }
+    /** @type {Array<{ hour: number, gti_used: number, power_watts: number, temp_used: number, cloud_cover: number, sunshine_duration_s: number }>} */
+    const hourly = []
 
-  return hourly
+    for (let h = 0; h < 24; h += 1) {
+      const rawGti = gtiArr[h]
+      const rawTemp = tempArr[h]
+      const rawCloud = Array.isArray(cloudArr) ? cloudArr[h] : null
+      const rawSun = Array.isArray(sunArr) ? sunArr[h] : null
+
+      const gti = typeof rawGti === 'number' && Number.isFinite(rawGti) ? rawGti : 0
+      const temp =
+        typeof rawTemp === 'number' && Number.isFinite(rawTemp) ? rawTemp : 25
+
+      const cloud =
+        typeof rawCloud === 'number' && Number.isFinite(rawCloud)
+          ? Math.max(0, Math.min(100, rawCloud))
+          : 50
+      const sunshineS =
+        typeof rawSun === 'number' && Number.isFinite(rawSun) ? Math.max(0, rawSun) : 0
+
+      let power = panelArea * efficiency * gti
+      if (temp > 25) {
+        const lossFactor = (temp - 25) * 0.004
+        power *= 1 - lossFactor
+      }
+
+      hourly.push({
+        hour: h,
+        gti_used: Math.round(gti * 10) / 10,
+        power_watts: parseFloat(power.toFixed(2)),
+        temp_used: temp,
+        cloud_cover: Math.round(cloud * 10) / 10,
+        sunshine_duration_s: Math.round(sunshineS * 100) / 100,
+      })
+    }
+
+    return hourly
+  } catch (error) {
+    console.error(`[${cityName}] hava durumu çekilemedi:`, error)
+    return []
+  }
 }

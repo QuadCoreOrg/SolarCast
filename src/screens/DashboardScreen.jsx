@@ -15,6 +15,63 @@ function clampSellPct(p) {
   return Math.min(100, Math.max(5, snapped))
 }
 
+/** Open-Meteo saat dilimindeki görünür güne göre Türkçe hava özeti */
+function forecastWeatherTurkish(cloudCover, gtiUsed) {
+  const cloud = typeof cloudCover === 'number' ? cloudCover : 50
+  const gti = typeof gtiUsed === 'number' ? gtiUsed : 0
+  if (gti < 5) return 'Gece · düşük ışınım'
+  if (cloud >= 88) return 'Kapalı gökyüzü'
+  if (cloud >= 65) return 'Çok bulutlu'
+  if (cloud >= 40) return 'Bulutlu'
+  if (cloud >= 18) return 'Parçalı bulutlu'
+  return 'Açık / güneşli'
+}
+
+/** Güne göre yaklaşık “gökyüzü açıklığı” skoru (%) */
+function clearnessPctFromForecast(cloudCover, gtiUsed) {
+  const cloud = typeof cloudCover === 'number' ? cloudCover : 50
+  const gti = typeof gtiUsed === 'number' ? gtiUsed : 0
+  if (gti < 5) return Math.round(Math.max(12, 100 - cloud * 0.65))
+  return Math.round(Math.max(15, Math.min(100, 100 - cloud * 0.92 + Math.min(18, gti / 45))))
+}
+
+function summarizeDailyForecast(slots) {
+  if (!Array.isArray(slots) || slots.length < 24) return null
+
+  let sumTemp = 0
+  let sumCloud = 0
+  let sumGti = 0
+  let sumPowWh = 0
+  let sumSunSec = 0
+  let n = 0
+
+  for (let i = 0; i < 24; i += 1) {
+    const s = slots[i]
+    if (!s) continue
+    n += 1
+    const t = typeof s.temp_used === 'number' ? s.temp_used : 25
+    const c = typeof s.cloud_cover === 'number' ? s.cloud_cover : 50
+    const g = typeof s.gti_used === 'number' ? s.gti_used : 0
+    const p = typeof s.power_watts === 'number' ? s.power_watts : 0
+    const sd = typeof s.sunshine_duration_s === 'number' ? s.sunshine_duration_s : 0
+    sumTemp += t
+    sumCloud += c
+    sumGti += g
+    sumPowWh += p
+    sumSunSec += sd
+  }
+
+  if (n === 0) return null
+
+  return {
+    avgTemp: Math.round((sumTemp / n) * 10) / 10,
+    avgCloud: Math.round((sumCloud / n) * 10) / 10,
+    avgGti: Math.round((sumGti / n) * 10) / 10,
+    dailyRefKwh: Math.round((sumPowWh / 1000) * 100) / 100,
+    sunshineHoursDay: Math.round((sumSunSec / 3600) * 10) / 10,
+  }
+}
+
 function DashboardScreen() {
   const setScreen = useGameStore((s) => s.setScreen)
   const coins = useGameStore((s) => s.coins)
@@ -58,6 +115,57 @@ function DashboardScreen() {
 
   const cityName = selectedCity || 'Konya'
   const cityStats = getCitySolarStats(cityName)
+
+  const hasFullForecast = Array.isArray(dailyForecast) && dailyForecast.length >= 24
+  const dayForecastSummary = summarizeDailyForecast(dailyForecast)
+
+  let liveCitySlot = null
+  if (hasFullForecast && dayForecastSummary) {
+    liveCitySlot = isDayActive
+      ? hourForecast
+      : {
+          temp_used: dayForecastSummary.avgTemp,
+          cloud_cover: dayForecastSummary.avgCloud,
+          gti_used: dayForecastSummary.avgGti,
+        }
+  }
+
+  const cityTemperature =
+    typeof liveCitySlot?.temp_used === 'number'
+      ? liveCitySlot.temp_used
+      : cityStats
+        ? Math.round((((cityStats.sunHoursPerDay / 12) * 18 + 8) * 10) / 10)
+        : 24
+
+  const cityWeatherLabel = liveCitySlot
+    ? forecastWeatherTurkish(liveCitySlot.cloud_cover, liveCitySlot.gti_used)
+    : 'Parçalı bulutlu'
+
+  const cityEfficiencyPctLive = liveCitySlot
+    ? clearnessPctFromForecast(liveCitySlot.cloud_cover, liveCitySlot.gti_used)
+    : cityStats
+      ? cityStats.efficiencyPct
+      : 72
+
+  const cityPotentialKwhDay = dayForecastSummary
+    ? dayForecastSummary.dailyRefKwh
+    : cityStats
+      ? Math.round(cityStats.sunHoursPerDay * 155)
+      : 1160
+
+  const citySunHoursDisplay = dayForecastSummary
+    ? dayForecastSummary.sunshineHoursDay
+    : cityStats
+      ? cityStats.sunHoursPerDay
+      : 7.5
+
+  const cityProductionBadge = liveCitySlot
+    ? liveCitySlot.gti_used >= 80 && liveCitySlot.cloud_cover < 70
+      ? 'Üretim için uygun'
+      : liveCitySlot.gti_used >= 25
+        ? 'Orta düzey ışınım'
+        : 'Düşük ışınım'
+    : 'Üretim için uygun'
 
   const liveSpotCoinPerKwh = getSpotEnergyPriceCoinPerKwh({
     day,
@@ -152,11 +260,21 @@ function DashboardScreen() {
     },
     city: {
       name: cityName,
-      potentialProductionKw: cityStats ? Math.round(cityStats.sunHoursPerDay * 155) : 1160,
-      sunHours: cityStats ? cityStats.sunHoursPerDay : 7.5,
-      weather: 'Parçalı bulutlu',
-      temperature: 24,
-      efficiencyPct: cityStats ? cityStats.efficiencyPct : 72,
+      /** Referans panel (1 m² · %20): günlük toplam kWh (Open-Meteo eğimi); yoksa eski oyuncu yaklaşımı */
+      potentialProductionLabel: dayForecastSummary ? 'Günlük ref. enerji (1 m²)' : 'Potansiyel üretim (tahmini)',
+      potentialProductionKw: cityPotentialKwhDay,
+      potentialProductionUnit: dayForecastSummary ? 'kWh' : 'kW/gün',
+      sunHours: citySunHoursDisplay,
+      sunHoursLabel: dayForecastSummary ? 'Güneşlenme (arşiv günü)' : 'Günlük güneş saati',
+      weather: cityWeatherLabel,
+      temperature: cityTemperature,
+      efficiencyPct: cityEfficiencyPctLive,
+      dataHint: hasFullForecast && dayForecastSummary
+        ? isDayActive
+          ? `Open-Meteo verisi`
+          : `Open-Meteo verisi`
+        : null,
+      productionBadge: cityProductionBadge,
     },
     market: {
       instantPrice: liveSpotCoinPerKwh,
@@ -202,6 +320,11 @@ function DashboardScreen() {
               <div className="rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 shadow-[3px_3px_0px_0px_var(--shade)]">
                 <p className="text-xs font-black text-shade-2">Anlık Üretim Verim Skoru</p>
                 <p className="text-xl font-black">%{dashboardData.city.efficiencyPct}</p>
+                {dashboardData.city.dataHint ? (
+                  <p className="text-[10px] font-bold text-shade-2 mt-0.5 leading-tight">
+                    {dashboardData.city.dataHint}
+                  </p>
+                ) : null}
               </div>
             </div>
             <div className="mt-4">
@@ -291,23 +414,38 @@ function DashboardScreen() {
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
             <article className="xl:col-span-2 rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-black text-lg">{dashboardData.city.name} - Şehir Bilgisi</h2>
-                <span className="rounded-full border-2 border-slate-900 bg-sunlit px-3 py-1 text-xs font-black">
-                  Üretim için uygun
+                <div>
+                  <h2 className="font-black text-lg">{dashboardData.city.name} - Şehir Bilgisi</h2>
+                  {dashboardData.city.dataHint ? (
+                    <p className="text-[11px] font-bold text-shade-2 mt-0.5">{dashboardData.city.dataHint}</p>
+                  ) : null}
+                </div>
+                <span className="rounded-full border-2 border-slate-900 bg-sunlit px-3 py-1 text-xs font-black text-center max-w-40 sm:max-w-none leading-tight">
+                  {dashboardData.city.productionBadge}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="rounded-xl border-3 border-slate-900 bg-sunlit/70 px-3 py-2">
-                  <p className="text-xs font-black text-shade-2">Potansiyel Üretim</p>
-                  <p className="text-lg font-black">{dashboardData.city.potentialProductionKw} kW/gün</p>
+                  <p className="text-xs font-black text-shade-2">{dashboardData.city.potentialProductionLabel}</p>
+                  <p className="text-lg font-black">
+                    {dashboardData.city.potentialProductionKw.toLocaleString('tr-TR', {
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    {dashboardData.city.potentialProductionUnit}
+                  </p>
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-breeze/70 px-3 py-2">
-                  <p className="text-xs font-black text-shade-2">Günlük Güneş Saati</p>
+                  <p className="text-xs font-black text-shade-2">{dashboardData.city.sunHoursLabel}</p>
                   <p className="text-lg font-black">{dashboardData.city.sunHours} saat</p>
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-sprout/70 px-3 py-2">
                   <p className="text-xs font-black text-shade-2">Sıcaklık</p>
-                  <p className="text-lg font-black">{dashboardData.city.temperature}°C</p>
+                  <p className="text-lg font-black">
+                    {dashboardData.city.temperature.toLocaleString('tr-TR', {
+                      maximumFractionDigits: 1,
+                    })}
+                    °C
+                  </p>
                 </div>
                 <div className="rounded-xl border-3 border-slate-900 bg-blossom/70 px-3 py-2">
                   <p className="text-xs font-black text-shade-2">Güncel Hava Durumu</p>
