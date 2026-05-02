@@ -15,6 +15,7 @@ const useGameStore = create((set) => ({
 
   dailyGoal: 80,
   currentProgress: 0,
+  selectedCity: '',
 
   addEnergy: (amount) => set((state) => ({ energy: state.energy + amount })),
   consumeEnergy: (amount) => set((state) => ({ energy: Math.max(0, state.energy - amount) })),
@@ -33,6 +34,7 @@ const useGameStore = create((set) => ({
 
   setDailyGoal: (goal) => set({ dailyGoal: goal }),
   updateProgress: (progress) => set({ currentProgress: progress }),
+  setSelectedCity: (city) => set({ selectedCity: city }),
 
   addSolarPanel: (panel) => set((state) => ({
     solarPanels: [...state.solarPanels, panel]
@@ -54,7 +56,8 @@ const useGameStore = create((set) => ({
     solarPanels: [],
     batteries: [],
     upgrades: [],
-    currentProgress: 0
+    currentProgress: 0,
+    selectedCity: ''
   })
 }));
 
