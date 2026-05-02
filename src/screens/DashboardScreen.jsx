@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Wallet, ZapOff } from 'lucide-react'
+import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Zap, ZapOff } from 'lucide-react'
 import { BATTERY_DEF_BY_TYPE_ID, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
@@ -142,9 +142,11 @@ function DashboardScreen() {
   const dashboardData = {
     inventory: {
       panelCount: activePanels.length,
-      totalProductionKw: Math.round(currentProductionKw * 100) / 100,
+      instantProductionKwh: Math.round(currentProductionKw * 100) / 100,
       batteryFillPct,
-      coins,
+      storedEnergyKwh:
+        Math.round(currentEnergy * 1000) / 1000,
+      batteryCapacityKwh: batteryCapacity,
       batteryCount: activeBatteries.length,
       dirtyPanelCount,
     },
@@ -232,37 +234,52 @@ function DashboardScreen() {
             <article className="rounded-2xl border-4 border-slate-900 bg-sunlit p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <SunMedium className="w-4 h-4" />
-                Toplam Üretim
+                Anlık üretim
               </div>
-              <p className="text-2xl font-black">{dashboardData.inventory.totalProductionKw} kWh</p>
-              <p className="text-xs font-black mt-1">Kirli panelde üretim %75 azalır</p>
+              <p className="text-2xl font-black">
+                {dashboardData.inventory.instantProductionKwh.toLocaleString('tr-TR', {
+                  maximumFractionDigits: 2,
+                })}{' '}
+                kWh
+              </p>
+              <p className="text-xs font-black mt-1">
+                Kirli panelde üretim ciddi düşer.
+              </p>
             </article>
             <article className="rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <BatteryCharging className="w-4 h-4" />
-                Batarya Doluluğu
+                Batarya doluluğu
               </div>
               <p className="text-2xl font-black">
                 {hasBatteryStorage ? `%${dashboardData.inventory.batteryFillPct}` : '—'}
               </p>
               <p className="text-xs font-black mt-1">
                 {hasBatteryStorage
-                  ? 'Kritik eşik: %20'
+                  ? `Toplam kapasite ${dashboardData.inventory.batteryCapacityKwh.toLocaleString('tr-TR')} kWh`
                   : 'Batarya yok — doluluk yalnızca depolama varken anlamlıdır.'}
               </p>
             </article>
             <article className="rounded-2xl border-4 border-slate-900 bg-sprout p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
-                <Wallet className="w-4 h-4" />
-                Coin
+                <Zap className="w-4 h-4" />
+                Depodaki enerji
               </div>
-              <p className="text-2xl font-black">{dashboardData.inventory.coins.toLocaleString('tr-TR')}</p>
-              <p className="text-xs font-black mt-1">Bugün: +320 Coin</p>
+              <p className="text-2xl font-black">
+                {hasBatteryStorage
+                  ? `${dashboardData.inventory.storedEnergyKwh.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} kWh`
+                  : '—'}
+              </p>
+              <p className="text-xs font-black mt-1">
+                {hasBatteryStorage
+                  ? 'Depolarda tutulan elektrik enerjisi'
+                  : 'Depolama yok — üretilen enerji bataryaya yazılmaz.'}
+              </p>
             </article>
             <article className="rounded-2xl border-4 border-slate-900 bg-blossom p-4 shadow-[4px_4px_0px_0px_var(--shade)] hover:-translate-y-0.5 transition-transform">
               <div className="flex items-center gap-2 mb-1.5 font-black text-sm text-shade-2">
                 <Gauge className="w-4 h-4" />
-                Envanter Özeti
+                Envanter özeti
               </div>
               <p className="text-2xl font-black">{dashboardData.inventory.panelCount} panel</p>
               <p className="text-xs font-black mt-1">

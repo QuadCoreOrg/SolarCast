@@ -678,6 +678,7 @@ const useGameStore = create(
           level,
           ...touch(),
         })
+        sfxBuying()
         return { ok: true, kwhSold, coinsEarned }
       },
 
