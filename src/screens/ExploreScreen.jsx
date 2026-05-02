@@ -5,6 +5,7 @@ import { RESEARCHES_BY_KEY } from '../constants/gameData'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import RESEARCH_UPGRADES from '../constants/researchUpgrades'
+import { sfxError } from '../utils/soundManager'
 import useGameStore from '../store/useGameStore'
 
 function ExploreScreen() {
@@ -30,6 +31,11 @@ function ExploreScreen() {
 
     const tryPurchase = () => {
       setLabErrorForKey(null)
+      if (!canAfford) {
+        sfxError()
+        setLabErrorForKey({ key: upgrade.key, msg: 'Yetersiz coin.' })
+        return
+      }
       const result = buyItem('research', upgrade.storeKey)
       if (!result.ok) setLabErrorForKey({ key: upgrade.key, msg: result.reason || 'Satın alınamadı.' })
     }
@@ -93,12 +99,11 @@ function ExploreScreen() {
               )}
               <motion.button
                 type="button"
-                disabled={!canAfford}
-                whileHover={{ scale: canAfford ? 1.02 : 1 }}
-                whileTap={{ scale: canAfford ? 0.98 : 1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => tryPurchase()}
                 className={`w-full rounded-xl border-4 border-slate-900 px-3 py-2.5 font-black text-sm shadow-[3px_3px_0px_0px_var(--shade)] ${
-                  canAfford ? 'bg-sunlit-deep cursor-pointer' : 'bg-border text-shade-2 opacity-85 cursor-not-allowed'
+                  canAfford ? 'bg-sunlit-deep cursor-pointer' : 'bg-border text-shade-2 opacity-85 cursor-pointer'
                 }`}
               >
                 {canAfford ? `${price.toLocaleString('tr-TR')} Coin öde — Aç` : 'Yetersiz coin'}

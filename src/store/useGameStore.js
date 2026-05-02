@@ -30,6 +30,7 @@ import {
 } from '../constants/xpRewards'
 import { calculateGameDayProduction } from '../services/production'
 import { applyExperienceGain } from '../utils/progression'
+import { sfxBuying, sfxError } from '../utils/soundManager'
 
 const GAME_STORAGE_KEY = 'solarcast_game_store'
 const GAME_STORE_VERSION = 5
@@ -362,30 +363,34 @@ const useGameStore = create(
           }
         }),
 
-      cleanPanel: (panelId, costCoins = PANEL_CLEAN_COST) =>
-        set((state) => {
-          const idx = state.activePanels.findIndex((p) => p.id === panelId)
-          if (idx === -1) return {}
-          if (state.coins < costCoins) return {}
+      cleanPanel: (panelId, costCoins = PANEL_CLEAN_COST) => {
+        const state = get()
+        const idx = state.activePanels.findIndex((p) => p.id === panelId)
+        if (idx === -1) return
+        if (state.coins < costCoins) {
+          sfxError()
+          return
+        }
 
-          const nextPanels = state.activePanels.map((p) =>
-            p.id === panelId ? { ...p, daysSinceCleaned: 0 } : p,
-          )
+        const nextPanels = state.activePanels.map((p) =>
+          p.id === panelId ? { ...p, daysSinceCleaned: 0 } : p,
+        )
 
-          const { experience, level } = applyExperienceGain(
-            state.experience,
-            state.level,
-            XP_REWARDS.panelClean,
-          )
+        const { experience, level } = applyExperienceGain(
+          state.experience,
+          state.level,
+          XP_REWARDS.panelClean,
+        )
 
-          return {
-            coins: state.coins - costCoins,
-            activePanels: nextPanels,
-            experience,
-            level,
-            ...touch(),
-          }
-        }),
+        set({
+          coins: state.coins - costCoins,
+          activePanels: nextPanels,
+          experience,
+          level,
+          ...touch(),
+        })
+        sfxBuying()
+      },
 
       /**
        * Panel ve depolama için ortak yuva kilidini açar (fiyat gameData).
@@ -397,6 +402,7 @@ const useGameStore = create(
           return { ok: false, reason: 'Tüm yuvalar zaten açık' }
         }
         if (state.coins < HUB_SLOT_UNLOCK_COST) {
+          sfxError()
           return { ok: false, reason: 'Yetersiz coin' }
         }
         const { experience, level } = applyExperienceGain(
@@ -411,6 +417,7 @@ const useGameStore = create(
           level,
           ...touch(),
         })
+        sfxBuying()
         return { ok: true }
       },
 
@@ -433,6 +440,7 @@ const useGameStore = create(
             return { ok: false, reason: `Seviye yetersiz (en az Lv.${def.reqLevel})` }
           }
           if (state.coins < def.price) {
+            sfxError()
             return { ok: false, reason: 'Yetersiz coin' }
           }
 
@@ -452,6 +460,7 @@ const useGameStore = create(
             level,
             ...touch(),
           })
+          sfxBuying()
           return { ok: true }
         }
 
@@ -468,6 +477,7 @@ const useGameStore = create(
             return { ok: false, reason: 'Araştırma gerekli' }
           }
           if (state.coins < def.price) {
+            sfxError()
             return { ok: false, reason: 'Yetersiz coin' }
           }
 
@@ -491,6 +501,7 @@ const useGameStore = create(
             level,
             ...touch(),
           })
+          sfxBuying()
           return { ok: true }
         }
 
@@ -507,6 +518,7 @@ const useGameStore = create(
             return { ok: false, reason: 'Araştırma gerekli' }
           }
           if (state.coins < def.price) {
+            sfxError()
             return { ok: false, reason: 'Yetersiz coin' }
           }
 
@@ -529,6 +541,7 @@ const useGameStore = create(
             level,
             ...touch(),
           })
+          sfxBuying()
           return { ok: true }
         }
 
@@ -551,7 +564,10 @@ const useGameStore = create(
         if (!proj.canPurchase) {
           return { ok: false, reason: proj.blockerLines[0] ?? 'Önce şartları sağlamalısın.' }
         }
-        if (state.coins < proj.coinCost) return { ok: false, reason: 'Yetersiz coin.' }
+        if (state.coins < proj.coinCost) {
+          sfxError()
+          return { ok: false, reason: 'Yetersiz coin.' }
+        }
 
         const nextDef = proj.targetDef
         const xpAmt = xpForPanelUpgradeTo(proj.nextKey)
@@ -571,6 +587,7 @@ const useGameStore = create(
           level,
           ...touch(),
         })
+        sfxBuying()
         return { ok: true }
       },
 
@@ -590,7 +607,10 @@ const useGameStore = create(
         if (!proj.canPurchase) {
           return { ok: false, reason: proj.blockerLines[0] ?? 'Önce şartları sağlamalısın.' }
         }
-        if (state.coins < proj.coinCost) return { ok: false, reason: 'Yetersiz coin.' }
+        if (state.coins < proj.coinCost) {
+          sfxError()
+          return { ok: false, reason: 'Yetersiz coin.' }
+        }
 
         const nextDef = proj.targetDef
         const xpAmt = xpForBatteryUpgradeTo(proj.nextKey)
@@ -613,6 +633,7 @@ const useGameStore = create(
           level,
           ...touch(),
         })
+        sfxBuying()
         return { ok: true }
       },
 

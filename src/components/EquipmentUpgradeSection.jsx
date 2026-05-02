@@ -1,4 +1,5 @@
 import { TrendingUp } from 'lucide-react'
+import { sfxError } from '../utils/soundManager'
 
 function targetLine(variant, targetDef) {
   if (!targetDef) return ''
@@ -57,9 +58,19 @@ export default function EquipmentUpgradeSection({ variant, projection, coins, on
 
       <button
         type="button"
-        onClick={onUpgrade}
-        disabled={!canActivate}
-        className="mt-3 w-full rounded-xl border-3 border-slate-900 bg-sunlit-deep px-3 py-2 text-sm font-black text-shade shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[2px_2px_0px_0px_var(--shade)]"
+        onClick={() => {
+          if (!projection.canPurchase) return
+          if (!affordable) {
+            sfxError()
+            return
+          }
+          onUpgrade()
+        }}
+        className={`mt-3 w-full rounded-xl border-3 border-slate-900 px-3 py-2 text-sm font-black text-shade shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-0.5 active:shadow-none ${
+          canActivate
+            ? 'bg-sunlit-deep cursor-pointer'
+            : 'bg-border opacity-65 cursor-pointer'
+        }`}
       >
         {projection.coinCost.toLocaleString('tr-TR')} Coin öde — yükselt
       </button>

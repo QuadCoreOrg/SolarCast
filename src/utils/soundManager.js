@@ -1,4 +1,4 @@
-import { SOUND_LIBRARY } from './soundConfig'
+import { SOUND_LIBRARY, SOUND_IDS } from './soundConfig'
 
 class SoundManager {
   constructor() {
@@ -75,3 +75,18 @@ class SoundManager {
 }
 
 export const soundManager = new SoundManager()
+
+/** Mağaza / retrofit / araştırma satın alma SFX ({@link SOUND_IDS.BUYING}) */
+export function sfxBuying() {
+  soundManager.play(SOUND_IDS.BUYING, { allowOverlap: true })
+}
+
+/** Yetersiz coin vb. işlem reddi ({@link SOUND_IDS.ERROR}) */
+export function sfxError() {
+  soundManager.play(SOUND_IDS.ERROR, { allowOverlap: true })
+}
+
+/** Sol tık / birincil tıklama (document capture) */
+export function sfxClick() {
+  soundManager.play(SOUND_IDS.CLICK, { allowOverlap: true })
+}

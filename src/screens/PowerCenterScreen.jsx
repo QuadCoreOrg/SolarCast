@@ -8,6 +8,7 @@ import {
 } from '../constants/equipmentUpgrade'
 import useGameStore from '../store/useGameStore'
 import EquipmentUpgradeSection from '../components/EquipmentUpgradeSection'
+import { sfxError } from '../utils/soundManager'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import PowerHub from '../components/PowerHub'
@@ -118,7 +119,10 @@ function PowerCenterScreen() {
   }
 
   const handleUnlockPurchase = () => {
-    if (!canAffordUnlock) return
+    if (!canAffordUnlock) {
+      sfxError()
+      return
+    }
     const result = unlockHubSlot()
     if (!result.ok) {
       setUnlockError(result.reason || 'Yuva açılamadı.')

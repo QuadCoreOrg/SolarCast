@@ -9,6 +9,7 @@ import {
 import useGameStore from '../store/useGameStore'
 import { allocateSequentialBatteryDisplay } from '../utils/sequentialBatteryAllocation'
 import EquipmentUpgradeSection from '../components/EquipmentUpgradeSection'
+import { sfxError } from '../utils/soundManager'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import TabBar from '../components/TabBar'
@@ -377,7 +378,10 @@ function StorageAreaScreen() {
             <button
               type="button"
               onClick={() => {
-                if (!canAffordUnlock) return
+                if (!canAffordUnlock) {
+                  sfxError()
+                  return
+                }
                 const result = unlockHubSlot()
                 if (!result.ok) {
                   setUnlockError(result.reason || 'Yuva açılamadı.')
