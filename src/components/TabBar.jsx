@@ -1,4 +1,4 @@
-import { BatteryCharging, FlaskConical, Gauge, Settings, Store, Zap } from "lucide-react";
+import { BatteryCharging, FlaskConical, Gauge, Settings, Zap } from "lucide-react";
 
 const tabs = [
   { id: "dashboard", label: "Gösterge Paneli", icon: Gauge, bg: "bg-sunlit" },
@@ -10,7 +10,8 @@ const tabs = [
     iconFill: true,
   },
   { id: "storage_area", label: "Depolama Alanı", icon: BatteryCharging, bg: "bg-sprout" },
-  { id: "market", label: "Mağaza", icon: Store, bg: "bg-sprout" },
+  // Mağaza (market) sekmesi şimdilik gizli — tekrar açmak için satırı listeye ekleyin + Store importunu geri ekleyin.
+  // { id: "market", label: "Mağaza", icon: Store, bg: "bg-sprout" },
   { id: "research", label: "Araştırma", icon: FlaskConical, bg: "bg-blossom" },
   { id: "settings", label: "Ayarlar", icon: Settings, bg: "bg-sunlit-deep" },
 ];
@@ -32,7 +33,7 @@ function TabBar({ activeScreen = "dashboard", onChange }) {
               className={`shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 ${tab.bg} px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] whitespace-nowrap transition-colors ${
                 isDisabled
                   ? "cursor-not-allowed opacity-75"
-                  : "cursor-pointer hover:brightness-95"
+                  : "cursor-pointer hover:brightness-95 active:translate-y-1 active:shadow-none"
               } ${isActive ? "ring-2 ring-slate-900 ring-offset-1" : ""}`}
               aria-current={isActive ? "page" : undefined}
             >

@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import logo from '../assets/solarcast-logo.png'
 import { FastForward, Pause, Play } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
+import PlayerProgressModal from './PlayerProgressModal'
 
 const MONTHS_TR = [
   'Ocak',
@@ -18,6 +20,7 @@ const MONTHS_TR = [
 ]
 
 function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) {
+  const [progressOpen, setProgressOpen] = useState(false)
   const hasStartedGame = useGameStore((s) => s.hasStartedGame)
   const startDay = useGameStore((s) => s.startDay)
   const endDay = useGameStore((s) => s.endDay)
@@ -28,9 +31,11 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
   const isDayActive = useGameStore((s) => s.isDayActive)
   const coinsFromStore = useGameStore((s) => s.coins)
   const levelFromStore = useGameStore((s) => s.level)
+  const experienceFromStore = useGameStore((s) => s.experience)
 
   const coins = coinsProp ?? creditsLegacy ?? coinsFromStore
   const level = levelProp ?? levelFromStore
+  const experience = experienceFromStore
   const calendarDate = new Date(2026, 0, day)
   const calendarLabel = `${calendarDate.getDate()} ${MONTHS_TR[calendarDate.getMonth()]}`
 
@@ -115,18 +120,55 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
               )}
             </>
           )}
-          <div className="flex items-center gap-2 bg-sunlit-deep border-4 border-shade rounded-full px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)]">
-            <span aria-hidden="true">🪙</span>
-            <span className="font-black text-sm tabular-nums">
-              {coins.toLocaleString('tr-TR')} Coin
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-sprout-deep border-4 border-shade rounded-full px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)]">
-            <span aria-hidden="true">⭐</span>
-            <span className="font-black text-sm">Lv.{level}</span>
-          </div>
+          {hasStartedGame ? (
+            <button
+              type="button"
+              onClick={() => setProgressOpen(true)}
+              className="flex items-center gap-2 bg-sunlit-deep border-4 border-shade rounded-full px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)] cursor-pointer hover:brightness-95 active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shade"
+              aria-label="Coin ve ilerleme özeti"
+            >
+              <span aria-hidden="true">🪙</span>
+              <span className="font-black text-sm tabular-nums">
+                {coins.toLocaleString('tr-TR')} Coin
+              </span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-sunlit-deep border-4 border-shade rounded-full px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)]">
+              <span aria-hidden="true">🪙</span>
+              <span className="font-black text-sm tabular-nums">
+                {coins.toLocaleString('tr-TR')} Coin
+              </span>
+            </div>
+          )}
+          {hasStartedGame ? (
+            <button
+              type="button"
+              onClick={() => setProgressOpen(true)}
+              className="flex items-center gap-2 bg-sprout-deep border-4 border-shade rounded-full px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)] cursor-pointer hover:brightness-95 active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shade"
+              aria-label="Seviye ve deneyim özeti"
+            >
+              <span aria-hidden="true">⭐</span>
+              <span className="font-black text-sm">Lv.{level}</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-sprout-deep border-4 border-shade rounded-full px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)]">
+              <span aria-hidden="true">⭐</span>
+              <span className="font-black text-sm">Lv.{level}</span>
+            </div>
+          )}
         </div>
       </div>
+
+      <PlayerProgressModal
+        isOpen={progressOpen && hasStartedGame}
+        onClose={() => setProgressOpen(false)}
+        coins={coins}
+        level={level}
+        experience={experience}
+        day={day}
+        hour={hour}
+        isDayActive={isDayActive}
+      />
     </div>
   )
 }

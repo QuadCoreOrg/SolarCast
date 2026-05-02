@@ -12,7 +12,15 @@ import {
   RESEARCH_ID_TO_LEGACY_KEY,
 } from '../constants/gameData'
 import GAME_CONFIG from '../config/gameConfig'
+import {
+  xpForBatteryPurchase,
+  xpForEnergySold,
+  xpForPanelPurchase,
+  xpForResearchPurchase,
+  XP_REWARDS,
+} from '../constants/xpRewards'
 import { calculateGameDayProduction } from '../services/production'
+import { applyExperienceGain } from '../utils/progression'
 
 const GAME_STORAGE_KEY = 'solarcast_game_store'
 const GAME_STORE_VERSION = 5
@@ -355,9 +363,17 @@ const useGameStore = create(
             p.id === panelId ? { ...p, daysSinceCleaned: 0 } : p,
           )
 
+          const { experience, level } = applyExperienceGain(
+            state.experience,
+            state.level,
+            XP_REWARDS.panelClean,
+          )
+
           return {
             coins: state.coins - costCoins,
             activePanels: nextPanels,
+            experience,
+            level,
             ...touch(),
           }
         }),
@@ -374,9 +390,16 @@ const useGameStore = create(
         if (state.coins < HUB_SLOT_UNLOCK_COST) {
           return { ok: false, reason: 'Yetersiz coin' }
         }
+        const { experience, level } = applyExperienceGain(
+          state.experience,
+          state.level,
+          XP_REWARDS.hubSlotUnlock,
+        )
         set({
           coins: state.coins - HUB_SLOT_UNLOCK_COST,
           unlockedSlots: state.unlockedSlots + 1,
+          experience,
+          level,
           ...touch(),
         })
         return { ok: true }
@@ -402,11 +425,19 @@ const useGameStore = create(
           }
 
           const legacyKey = RESEARCH_ID_TO_LEGACY_KEY[def.id]
+          const xpAmt = xpForResearchPurchase(def.price)
+          const { experience, level } = applyExperienceGain(
+            state.experience,
+            state.level,
+            xpAmt,
+          )
           set({
             coins: state.coins - def.price,
             unlockedResearches: [...state.unlockedResearches, def.id],
             research:
               legacyKey != null ? { ...state.research, [legacyKey]: true } : state.research,
+            experience,
+            level,
             ...touch(),
           })
           return { ok: true }
@@ -434,9 +465,18 @@ const useGameStore = create(
             daysSinceCleaned: 0,
           }
 
+          const xpAmt = xpForPanelPurchase(key)
+          const { experience, level } = applyExperienceGain(
+            state.experience,
+            state.level,
+            xpAmt,
+          )
+
           set({
             coins: state.coins - def.price,
             activePanels: [...state.activePanels, newPanel],
+            experience,
+            level,
             ...touch(),
           })
           return { ok: true }
@@ -463,9 +503,18 @@ const useGameStore = create(
             type: def.id,
           }
 
+          const xpAmt = xpForBatteryPurchase(key)
+          const { experience, level } = applyExperienceGain(
+            state.experience,
+            state.level,
+            xpAmt,
+          )
+
           set({
             coins: state.coins - def.price,
             activeBatteries: [...state.activeBatteries, newBatt],
+            experience,
+            level,
             ...touch(),
           })
           return { ok: true }
@@ -501,10 +550,18 @@ const useGameStore = create(
 
         const coinsEarned = Math.round(kwhSold * price)
         const nextEnergy = Math.max(0, Math.round((available - kwhSold) * 1000) / 1000)
+        const xpAmt = xpForEnergySold(kwhSold)
+        const { experience, level } = applyExperienceGain(
+          state.experience,
+          state.level,
+          xpAmt,
+        )
 
         set({
           coins: state.coins + coinsEarned,
           currentEnergy: nextEnergy,
+          experience,
+          level,
           ...touch(),
         })
         return { ok: true, kwhSold, coinsEarned }
@@ -524,19 +581,14 @@ const useGameStore = create(
 
       addExperience: (amount) =>
         set((state) => {
-          const newExp = state.experience + amount
-          const expNeeded = state.level * 100
-
-          if (newExp >= expNeeded) {
-            return {
-              experience: newExp - expNeeded,
-              level: state.level + 1,
-              ...touch(),
-            }
-          }
-
+          const { experience, level } = applyExperienceGain(
+            state.experience,
+            state.level,
+            amount,
+          )
           return {
-            experience: newExp,
+            experience,
+            level,
             ...touch(),
           }
         }),
@@ -564,17 +616,28 @@ const useGameStore = create(
 
       unlockResearch: (researchKey) =>
         set((state) => {
+          if (state.research?.[researchKey]) return {}
+
           const rid = LEGACY_RESEARCH_KEY_TO_ID[researchKey]
           let nextUnlocks = state.unlockedResearches
           if (rid && !state.unlockedResearches.includes(rid)) {
             nextUnlocks = [...state.unlockedResearches, rid]
           }
+
+          const { experience, level } = applyExperienceGain(
+            state.experience,
+            state.level,
+            XP_REWARDS.exploreResearchUnlock,
+          )
+
           return {
             research: {
               ...state.research,
               [researchKey]: true,
             },
             unlockedResearches: nextUnlocks,
+            experience,
+            level,
             ...touch(),
           }
         }),
