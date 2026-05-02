@@ -1,5 +1,6 @@
 {
   "name": "solarcast",
+  "homepage": "https://QuadCoreOrg.github.io/SolarCast/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
