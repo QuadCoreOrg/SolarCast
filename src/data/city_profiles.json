@@ -1,0 +1,569 @@
+[
+    {
+        "il": "Adana",
+        "sunHours": "10.2h",
+        "efficiency": "84%",
+        "setupCost": 2864,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Adıyaman",
+        "sunHours": "10.3h",
+        "efficiency": "81%",
+        "setupCost": 2898,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Afyonkarahisar",
+        "sunHours": "8.4h",
+        "efficiency": "89%",
+        "setupCost": 1920,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Ağrı",
+        "sunHours": "6.5h",
+        "efficiency": "90%",
+        "setupCost": 1433,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Aksaray",
+        "sunHours": "7.2h",
+        "efficiency": "87%",
+        "setupCost": 2205,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Amasya",
+        "sunHours": "5.4h",
+        "efficiency": "97%",
+        "setupCost": 1046,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Ankara",
+        "sunHours": "7.8h",
+        "efficiency": "88%",
+        "setupCost": 2180,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Antalya",
+        "sunHours": "8.7h",
+        "efficiency": "82%",
+        "setupCost": 2685,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Ardahan",
+        "sunHours": "6.6h",
+        "efficiency": "94%",
+        "setupCost": 1492,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Artvin",
+        "sunHours": "5.1h",
+        "efficiency": "97%",
+        "setupCost": 1072,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Aydın",
+        "sunHours": "8.4h",
+        "efficiency": "88%",
+        "setupCost": 2162,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Balıkesir",
+        "sunHours": "6.1h",
+        "efficiency": "90%",
+        "setupCost": 1634,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Bartın",
+        "sunHours": "4.7h",
+        "efficiency": "96%",
+        "setupCost": 864,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Batman",
+        "sunHours": "9.7h",
+        "efficiency": "82%",
+        "setupCost": 2753,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Bayburt",
+        "sunHours": "3.8h",
+        "efficiency": "95%",
+        "setupCost": 925,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Bilecik",
+        "sunHours": "5.5h",
+        "efficiency": "90%",
+        "setupCost": 1655,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Bingöl",
+        "sunHours": "5.9h",
+        "efficiency": "94%",
+        "setupCost": 1229,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Bitlis",
+        "sunHours": "6.1h",
+        "efficiency": "94%",
+        "setupCost": 1656,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Bolu",
+        "sunHours": "4.2h",
+        "efficiency": "95%",
+        "setupCost": 1144,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Burdur",
+        "sunHours": "9.4h",
+        "efficiency": "84%",
+        "setupCost": 2563,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Bursa",
+        "sunHours": "7.0h",
+        "efficiency": "93%",
+        "setupCost": 1642,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Çanakkale",
+        "sunHours": "6.8h",
+        "efficiency": "93%",
+        "setupCost": 1256,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Çankırı",
+        "sunHours": "7.8h",
+        "efficiency": "89%",
+        "setupCost": 2063,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Çorum",
+        "sunHours": "5.3h",
+        "efficiency": "96%",
+        "setupCost": 868,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Denizli",
+        "sunHours": "7.4h",
+        "efficiency": "89%",
+        "setupCost": 2228,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Diyarbakır",
+        "sunHours": "10.3h",
+        "efficiency": "80%",
+        "setupCost": 2808,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Düzce",
+        "sunHours": "5.3h",
+        "efficiency": "95%",
+        "setupCost": 1008,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Edirne",
+        "sunHours": "6.0h",
+        "efficiency": "91%",
+        "setupCost": 1513,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Elazığ",
+        "sunHours": "6.5h",
+        "efficiency": "91%",
+        "setupCost": 1421,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Erzincan",
+        "sunHours": "5.9h",
+        "efficiency": "90%",
+        "setupCost": 1652,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Erzurum",
+        "sunHours": "5.6h",
+        "efficiency": "90%",
+        "setupCost": 1239,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Eskişehir",
+        "sunHours": "8.3h",
+        "efficiency": "89%",
+        "setupCost": 2093,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Gaziantep",
+        "sunHours": "10.1h",
+        "efficiency": "83%",
+        "setupCost": 2920,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Giresun",
+        "sunHours": "4.8h",
+        "efficiency": "96%",
+        "setupCost": 820,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Gümüşhane",
+        "sunHours": "4.4h",
+        "efficiency": "95%",
+        "setupCost": 1061,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Hakkari",
+        "sunHours": "6.0h",
+        "efficiency": "91%",
+        "setupCost": 1204,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Hatay",
+        "sunHours": "9.6h",
+        "efficiency": "83%",
+        "setupCost": 2683,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Iğdır",
+        "sunHours": "6.7h",
+        "efficiency": "91%",
+        "setupCost": 1238,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Isparta",
+        "sunHours": "9.0h",
+        "efficiency": "83%",
+        "setupCost": 2777,
+        "tier": "High Solar"
+    },
+    {
+        "il": "İstanbul",
+        "sunHours": "5.8h",
+        "efficiency": "92%",
+        "setupCost": 1334,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "İzmir",
+        "sunHours": "7.2h",
+        "efficiency": "89%",
+        "setupCost": 2156,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Kahramanmaraş",
+        "sunHours": "10.2h",
+        "efficiency": "80%",
+        "setupCost": 2856,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Karabük",
+        "sunHours": "4.7h",
+        "efficiency": "96%",
+        "setupCost": 1060,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Karaman",
+        "sunHours": "7.8h",
+        "efficiency": "89%",
+        "setupCost": 1993,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Kars",
+        "sunHours": "5.9h",
+        "efficiency": "90%",
+        "setupCost": 1213,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Kastamonu",
+        "sunHours": "5.2h",
+        "efficiency": "95%",
+        "setupCost": 1125,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Kayseri",
+        "sunHours": "8.1h",
+        "efficiency": "89%",
+        "setupCost": 1856,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Kırıkkale",
+        "sunHours": "7.9h",
+        "efficiency": "85%",
+        "setupCost": 1936,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Kırklareli",
+        "sunHours": "5.7h",
+        "efficiency": "91%",
+        "setupCost": 1599,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Kırşehir",
+        "sunHours": "7.5h",
+        "efficiency": "86%",
+        "setupCost": 1866,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Kilis",
+        "sunHours": "8.9h",
+        "efficiency": "83%",
+        "setupCost": 2877,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Kocaeli",
+        "sunHours": "5.9h",
+        "efficiency": "94%",
+        "setupCost": 1534,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Konya",
+        "sunHours": "8.0h",
+        "efficiency": "89%",
+        "setupCost": 2392,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Kütahya",
+        "sunHours": "7.3h",
+        "efficiency": "86%",
+        "setupCost": 1832,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Malatya",
+        "sunHours": "5.7h",
+        "efficiency": "92%",
+        "setupCost": 1730,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Manisa",
+        "sunHours": "7.0h",
+        "efficiency": "88%",
+        "setupCost": 1812,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Mardin",
+        "sunHours": "10.2h",
+        "efficiency": "80%",
+        "setupCost": 2772,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Mersin",
+        "sunHours": "10.0h",
+        "efficiency": "81%",
+        "setupCost": 2949,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Muğla",
+        "sunHours": "8.0h",
+        "efficiency": "87%",
+        "setupCost": 2244,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Muş",
+        "sunHours": "5.6h",
+        "efficiency": "93%",
+        "setupCost": 1710,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Nevşehir",
+        "sunHours": "7.8h",
+        "efficiency": "89%",
+        "setupCost": 2359,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Niğde",
+        "sunHours": "7.2h",
+        "efficiency": "89%",
+        "setupCost": 2181,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Ordu",
+        "sunHours": "3.9h",
+        "efficiency": "96%",
+        "setupCost": 991,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Osmaniye",
+        "sunHours": "10.5h",
+        "efficiency": "84%",
+        "setupCost": 2832,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Rize",
+        "sunHours": "4.9h",
+        "efficiency": "97%",
+        "setupCost": 894,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Sakarya",
+        "sunHours": "5.8h",
+        "efficiency": "94%",
+        "setupCost": 1606,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Samsun",
+        "sunHours": "3.7h",
+        "efficiency": "96%",
+        "setupCost": 841,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Siirt",
+        "sunHours": "10.5h",
+        "efficiency": "81%",
+        "setupCost": 2550,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Sinop",
+        "sunHours": "4.3h",
+        "efficiency": "96%",
+        "setupCost": 994,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Sivas",
+        "sunHours": "7.9h",
+        "efficiency": "85%",
+        "setupCost": 2359,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Şanlıurfa",
+        "sunHours": "9.0h",
+        "efficiency": "83%",
+        "setupCost": 2925,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Şırnak",
+        "sunHours": "8.6h",
+        "efficiency": "83%",
+        "setupCost": 2759,
+        "tier": "High Solar"
+    },
+    {
+        "il": "Tekirdağ",
+        "sunHours": "6.3h",
+        "efficiency": "90%",
+        "setupCost": 1362,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Tokat",
+        "sunHours": "5.0h",
+        "efficiency": "95%",
+        "setupCost": 1120,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Trabzon",
+        "sunHours": "3.6h",
+        "efficiency": "97%",
+        "setupCost": 927,
+        "tier": "Low Solar"
+    },
+    {
+        "il": "Tunceli",
+        "sunHours": "6.1h",
+        "efficiency": "93%",
+        "setupCost": 1419,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Uşak",
+        "sunHours": "8.1h",
+        "efficiency": "89%",
+        "setupCost": 2218,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Van",
+        "sunHours": "6.3h",
+        "efficiency": "94%",
+        "setupCost": 1248,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Yalova",
+        "sunHours": "6.9h",
+        "efficiency": "93%",
+        "setupCost": 1750,
+        "tier": "Medium Solar"
+    },
+    {
+        "il": "Yozgat",
+        "sunHours": "8.1h",
+        "efficiency": "85%",
+        "setupCost": 1876,
+        "tier": "Good Solar"
+    },
+    {
+        "il": "Zonguldak",
+        "sunHours": "5.3h",
+        "efficiency": "97%",
+        "setupCost": 861,
+        "tier": "Low Solar"
+    }
+]

@@ -11,6 +11,7 @@ function CitySelectScreen() {
   const setScreen = useGameStore((state) => state.setScreen)
   const selectedCity = useGameStore((state) => state.selectedCity)
   const setSelectedCity = useGameStore((state) => state.setSelectedCity)
+  const startGame = useGameStore((state) => state.startGame)
 
   const solarStats = useMemo(() => getCitySolarStats(selectedCity), [selectedCity])
 
@@ -29,7 +30,7 @@ function CitySelectScreen() {
 
   const handleStart = () => {
     if (selectedCity) {
-      setScreen('dashboard')
+      startGame()
     }
   }
 

@@ -1,4 +1,3 @@
-import { Sun } from "lucide-react";
 import logo from "../../assets/solarcast-logo.png";
 
 function Header({ onPlayClick }) {
