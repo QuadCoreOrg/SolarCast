@@ -204,6 +204,7 @@ function DashboardScreen() {
           </button>
           <button
             type="button"
+            onClick={() => setScreen('settings')}
             className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:brightness-105"
           >
             <Settings className="w-5 h-5 text-current" strokeWidth={2.25} />

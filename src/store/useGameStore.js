@@ -64,7 +64,7 @@ const useGameStore = create((set) => ({
     maxSlots: GAME_CONFIG.powerHub.maxSlots,
     unlockedSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
     currentProgress: 0,
-    selectedCity: ''
+    selectedCity: '',
   })
 }));
 
