@@ -1,51 +1,40 @@
-import { motion } from 'framer-motion';
-import { LayoutDashboard, ShoppingCart, Settings } from 'lucide-react';
+import { Compass, Gauge, Settings, Store, Zap } from 'lucide-react'
 
 const tabs = [
-  { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-  { id: 'market', label: 'Shop', icon: ShoppingCart },
-  { id: 'settings', label: 'Settings', icon: Settings },
-];
+  { id: 'dashboard', label: 'Gösterge Paneli', icon: Gauge, bg: 'bg-sunlit' },
+  { id: 'power_center', label: 'Güç Merkezi', icon: Zap, bg: 'bg-breeze-deep', iconFill: true },
+  { id: 'market', label: 'Mağaza', icon: Store, bg: 'bg-sprout' },
+  { id: 'research', label: 'Araştırma', icon: Compass, bg: 'bg-blossom' },
+  { id: 'settings', label: 'Ayarlar', icon: Settings, bg: 'bg-sunlit-deep', disabled: true },
+]
 
-function TabBar({ activeTab = 'dashboard', onChange }) {
+function TabBar({ activeScreen = 'dashboard', onChange }) {
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-      <motion.div
-        className="bg-background border-4 border-shade rounded-full shadow-[8px_8px_0px_0px_var(--shade)] p-2 flex gap-2"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      >
+    <nav className="shrink-0 border-t-4 border-slate-900 bg-background p-3">
+      <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2">
         {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
+          const Icon = tab.icon
+          const isActive = activeScreen === tab.id
+          const isDisabled = tab.disabled
 
           return (
-            <motion.button
+            <button
               key={tab.id}
-              onClick={() => onChange(tab.id)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`
-                flex items-center justify-center gap-2
-                border-4 border-shade rounded-full
-                ${isActive ? 'bg-sunlit-deep' : 'bg-background'}
-              `}
-              style={{
-                width: isActive ? 120 : 52,
-                height: 52,
-              }}
+              type="button"
+              onClick={() => !isDisabled && onChange(tab.id)}
+              className={`shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 ${tab.bg} px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] whitespace-nowrap transition-colors ${
+                isDisabled ? 'cursor-not-allowed opacity-75' : 'cursor-pointer hover:brightness-95'
+              } ${isActive ? 'ring-2 ring-slate-900 ring-offset-1' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? '' : 'text-shade-soft'}`} />
-              {isActive && (
-                <span className="font-bold text-sm whitespace-nowrap">{tab.label}</span>
-              )}
-            </motion.button>
-          );
+              <Icon className="w-5 h-5 text-current" fill={tab.iconFill ? 'currentColor' : 'none'} strokeWidth={tab.iconFill ? 0 : 2.25} />
+              {tab.label}
+            </button>
+          )
         })}
-      </motion.div>
-    </div>
-  );
+      </div>
+    </nav>
+  )
 }
 
-export default TabBar;
+export default TabBar

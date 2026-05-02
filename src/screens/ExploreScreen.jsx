@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
-import { BatteryCharging, Compass, Gauge, Lock, Settings, Store, SunMedium, Zap } from 'lucide-react'
+import { BatteryCharging, Lock, SunMedium } from 'lucide-react'
 import Header from '../components/Header'
+import TabBar from '../components/TabBar'
 import RESEARCH_UPGRADES from '../constants/researchUpgrades'
 import useGameStore from '../store/useGameStore'
 
@@ -74,15 +75,16 @@ function ExploreScreen() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 24 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -24 }}
-      className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden"
-    >
+    <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
       <Header coins={coins} level={level} />
 
-      <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
+      <motion.main
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6"
+      >
         <section className="max-w-6xl mx-auto space-y-4">
           <article className="rounded-3xl border-4 border-slate-900 bg-background p-5 shadow-[6px_6px_0px_0px_var(--shade)]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -113,52 +115,10 @@ function ExploreScreen() {
             </div>
           </section>
         </section>
-      </main>
+      </motion.main>
 
-      <nav className="shrink-0 border-t-4 border-slate-900 bg-background p-3">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setScreen('dashboard')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sunlit px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:bg-sunlit-deep"
-          >
-            <Gauge className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Gösterge Paneli
-          </button>
-          <button
-            type="button"
-            onClick={() => setScreen('power_center')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-breeze-deep px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:brightness-95"
-          >
-            <Zap className="w-5 h-5 text-current" fill="currentColor" strokeWidth={0} />
-            Güç Merkezi
-          </button>
-          <button
-            type="button"
-            onClick={() => setScreen('market')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sprout px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:bg-sprout-deep"
-          >
-            <Store className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Mağaza
-          </button>
-          <button
-            type="button"
-            onClick={() => setScreen('research')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-blossom px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:bg-blossom-deep"
-          >
-            <Compass className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Araştırma
-          </button>
-          <button
-            type="button"
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:brightness-105"
-          >
-            <Settings className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Ayarlar
-          </button>
-        </div>
-      </nav>
-    </motion.div>
+      <TabBar activeScreen="research" onChange={setScreen} />
+    </div>
   )
 }
 

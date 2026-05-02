@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
-import { BatteryCharging, Compass, Gauge, Lock, Settings, ShoppingCart, Store, SunMedium, Zap } from 'lucide-react'
+import { BatteryCharging, Compass, Lock, ShoppingCart, SunMedium } from 'lucide-react'
 import Modal from '../components/Modal'
 import Header from '../components/Header'
+import TabBar from '../components/TabBar'
 import SHOP_PRODUCTS from '../constants/shopProducts'
 import useGameStore from '../store/useGameStore'
 
@@ -30,15 +31,16 @@ function MarketScreen() {
   const batteryProducts = products.filter((p) => p.category === 'battery')
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 24 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -24 }}
-      className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden"
-    >
+    <div className="h-screen bg-breeze flex flex-col font-['Nunito'] text-shade overflow-hidden">
       <Header coins={coins} level={level} />
 
-      <div className="max-w-6xl w-full mx-auto flex-1 min-h-0 flex flex-col gap-4 p-4 sm:p-6">
+      <motion.main
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="max-w-6xl w-full mx-auto flex-1 min-h-0 flex flex-col gap-4 p-4 sm:p-6"
+      >
         <div className="shrink-0 flex items-center justify-between rounded-2xl border-4 border-slate-900 bg-breeze p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
           <div>
             <h1 className="font-black text-2xl">Mağaza</h1>
@@ -138,7 +140,7 @@ function MarketScreen() {
             </div>
           </section>
         </div>
-      </div>
+      </motion.main>
 
       <Modal
         isOpen={Boolean(selectedProduct)}
@@ -200,50 +202,8 @@ function MarketScreen() {
         )}
       </Modal>
 
-      <nav className="shrink-0 border-t-4 border-slate-900 bg-background p-3">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setScreen('dashboard')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sunlit px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:bg-sunlit-deep"
-          >
-            <Gauge className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Gösterge Paneli
-          </button>
-          <button
-            type="button"
-            onClick={() => setScreen('power_center')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-breeze-deep px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:brightness-95"
-          >
-            <Zap className="w-5 h-5 text-current" fill="currentColor" strokeWidth={0} />
-            Güç Merkezi
-          </button>
-          <button
-            type="button"
-            onClick={() => setScreen('market')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sprout px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:bg-sprout-deep"
-          >
-            <Store className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Mağaza
-          </button>
-          <button
-            type="button"
-            onClick={() => setScreen('research')}
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-blossom px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:bg-blossom-deep"
-          >
-            <Compass className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Araştırma
-          </button>
-          <button
-            type="button"
-            className="shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] cursor-pointer whitespace-nowrap transition-colors hover:brightness-105"
-          >
-            <Settings className="w-5 h-5 text-current" strokeWidth={2.25} />
-            Ayarlar
-          </button>
-        </div>
-      </nav>
-    </motion.div>
+      <TabBar activeScreen="market" onChange={setScreen} />
+    </div>
   )
 }
 
