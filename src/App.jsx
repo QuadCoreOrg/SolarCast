@@ -1,122 +1,129 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from "react";
+import useGameStore from "./store/useGameStore";
+import { motion } from "framer-motion";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { 
+    energy, coins, level, experience,
+    dailyGoal, currentProgress,
+    addEnergy, consumeEnergy,
+    addCoins, addExperience,
+    updateProgress
+  } = useGameStore();
+
+  const handleGenerateEnergy = () => {
+    addEnergy(10);
+    addCoins(5);
+    addExperience(15);
+    updateProgress(currentProgress + 10);
+  };
+
+  const handleConsumeEnergy = () => {
+    consumeEnergy(5);
+  };
+
+  const expNeeded = level * 100;
+  const progressPercent = (currentProgress / dailyGoal) * 100;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div className="min-h-screen bg-pure-white font-['Nunito'] text-slate-900 p-6">
+      <div className="max-w-md mx-auto space-y-6">
+        
+        <motion.h1 
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="text-4xl font-black text-center"
         >
-          Count is {count}
-        </button>
-      </section>
+          ☀️ SolarCast
+        </motion.h1>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="bg-white border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-bold text-xl">⚡ Energy</span>
+            <span className="font-black text-2xl">{energy}</span>
+          </div>
+          <div className="w-full h-8 bg-slate-100 border-4 border-slate-900 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-mint-green"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(energy, 100)}%` }}
+              transition={{ type: "spring", stiffness: 200 }}
+            />
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <div className="bg-soft-peach border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]">
+          <div className="flex justify-between items-center mb-4">
+            <span className="font-bold text-xl">🎯 Daily Goal</span>
+            <span className="font-bold">{currentProgress} / {dailyGoal}</span>
+          </div>
+          <div className="w-full h-8 bg-white border-4 border-slate-900 rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-sunny-yellow"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(progressPercent, 100)}%` }}
+              transition={{ type: "spring", stiffness: 200 }}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="flex-1 bg-mint-green border-4 border-slate-900 rounded-3xl p-4 shadow-[4px_4px_0px_0px_#0f172a] text-center">
+            <div className="font-bold text-lg">🪙 Coins</div>
+            <div className="font-black text-3xl">{coins}</div>
+          </div>
+          <div className="flex-1 bg-sunny-yellow border-4 border-slate-900 rounded-3xl p-4 shadow-[4px_4px_0px_0px_#0f172a] text-center">
+            <div className="font-bold text-lg">⭐ Level</div>
+            <div className="font-black text-3xl">{level}</div>
+          </div>
+        </div>
+
+        <div className="bg-slate-100 border-4 border-slate-900 rounded-2xl p-4">
+          <div className="flex justify-between mb-2">
+            <span className="font-bold">Experience</span>
+            <span className="font-bold">{experience} / {expNeeded}</span>
+          </div>
+          <div className="w-full h-4 bg-white border-2 border-slate-900 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-400"
+              style={{ width: `${(experience / expNeeded) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95, y: 2 }}
+            onClick={handleGenerateEnergy}
+            className="flex-1 bg-sunny-yellow border-4 border-slate-900 rounded-full font-bold text-slate-900 px-6 py-4 shadow-[4px_4px_0px_0px_#0f172a] active:translate-y-1 active:shadow-none transition-all text-lg"
+          >
+            ☀️ Generate
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95, y: 2 }}
+            onClick={handleConsumeEnergy}
+            className="flex-1 bg-soft-peach border-4 border-slate-900 rounded-full font-bold text-slate-900 px-6 py-4 shadow-[4px_4px_0px_0px_#0f172a] active:translate-y-1 active:shadow-none transition-all text-lg"
+          >
+            🔋 Use
+          </motion.button>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-mint-green border-4 border-slate-900 rounded-2xl p-4 text-center"
+        >
+          <span className="font-bold">🎮 Game Started! Tap Generate to earn energy & coins.</span>
+        </motion.div>
+
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;

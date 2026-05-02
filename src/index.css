@@ -6,3 +6,7 @@
   --color-sunny-yellow: #FFE066;
   --color-pure-white: #FFFFFF;
 }
+
+body {
+  font-family: 'Nunito', sans-serif;
+}
