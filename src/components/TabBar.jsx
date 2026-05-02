@@ -57,7 +57,7 @@ function TabBar({ activeScreen = "dashboard", onChange }) {
 
   return (
     <nav className="shrink-0 border-t-4 border-slate-900 bg-background p-3">
-      <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2">
+      <div className="max-w-5xl mx-auto flex flex-nowrap items-stretch justify-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0 [-webkit-overflow-scrolling:touch]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeScreen === tab.id;
@@ -75,7 +75,7 @@ function TabBar({ activeScreen = "dashboard", onChange }) {
                 ? storageFullLabel
                 : undefined;
           const tabTitleAndHint =
-            caution != null ? `${tab.label} — ${caution}` : tab.label;
+            caution != null ? `${tab.label}. ${caution}` : tab.label;
 
           return (
             <div key={tab.id} className="relative shrink-0">
@@ -83,8 +83,8 @@ function TabBar({ activeScreen = "dashboard", onChange }) {
                 type="button"
                 onClick={() => !isDisabled && onChange(tab.id)}
                 title={tabTitleAndHint}
-                aria-label={caution != null ? `${tab.label}. ${caution}` : undefined}
-                className={`shrink-0 flex items-center justify-center gap-2 rounded-2xl border-4 border-slate-900 ${tab.bg} px-4 py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] whitespace-nowrap transition-colors ${
+                aria-label={tabTitleAndHint}
+                className={`shrink-0 flex min-h-[52px] min-w-[52px] sm:min-h-0 sm:min-w-0 items-center justify-center gap-0 sm:gap-2 rounded-2xl border-4 border-slate-900 ${tab.bg} px-4 py-3 sm:px-4 sm:py-2.5 font-black text-shade shadow-[4px_4px_0px_0px_var(--shade)] transition-colors touch-manipulation ${
                   isDisabled
                     ? "cursor-not-allowed opacity-75"
                     : "cursor-pointer hover:brightness-95 active:translate-y-1 active:shadow-none"
@@ -92,11 +92,11 @@ function TabBar({ activeScreen = "dashboard", onChange }) {
                 aria-current={isActive ? "page" : undefined}
               >
                 <Icon
-                  className="w-5 h-5 text-current"
+                  className="h-7 w-7 text-current sm:h-5 sm:w-5"
                   fill={tab.iconFill ? "currentColor" : "none"}
                   strokeWidth={tab.iconFill ? 0 : 2.25}
                 />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
 
               {showDirtyBadge && (

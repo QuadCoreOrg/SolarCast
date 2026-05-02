@@ -85,8 +85,3 @@ export function sfxBuying() {
 export function sfxError() {
   soundManager.play(SOUND_IDS.ERROR, { allowOverlap: true })
 }
-
-/** Sol tık / birincil tıklama (document capture) */
-export function sfxClick() {
-  soundManager.play(SOUND_IDS.CLICK, { allowOverlap: true })
-}
