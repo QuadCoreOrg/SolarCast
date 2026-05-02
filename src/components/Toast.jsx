@@ -1,14 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 const colorClasses = {
-  success: 'bg-mint-green',
-  warning: 'bg-sunny-yellow',
-  error: 'bg-orange-400',
-  info: 'bg-blue-400',
+  success: 'bg-sprout',
+  warning: 'bg-blossom',
+  error: 'bg-sunlit',
+  info: 'bg-breeze',
 };
 
 const Toast = ({ message, type = 'success', isVisible, onClose }) => {
-  const toastClasses = `border-4 border-slate-900 rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_#0f172a] font-bold text-slate-900 ${colorClasses[type] || colorClasses.success}`;
+  const toastClasses = `border-4 border-slate-900 rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_#2A2A33] font-bold text-shade ${colorClasses[type] || colorClasses.success}`;
 
   return (
     <AnimatePresence>

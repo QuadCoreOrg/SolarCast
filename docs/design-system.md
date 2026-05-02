@@ -1,43 +1,70 @@
 # SolarCast - Design System & UI Guidelines
 
-You are an expert Frontend Developer. We are building a gamified solar energy web application using React (Vite), Tailwind CSS, and Framer Motion.
+React (Vite) + Tailwind CSS v4 + Framer Motion. **Renk tek kaynak:** `src/index.css` içindeki `@theme` blokları ile aşağıdaki token’lar birebir aynıdır.
 
-Follow these strict "Cartoonish UI" design rules for every component you generate:
+## Tipografi
 
-## 1. Typography
-- Use `Nunito` for all text.
-- Use thick font weights (`font-bold`, `font-black`) for headings and numbers.
+- `Nunito`, başlıklar ve sayılar için `font-black` / `font-bold`.
 
-## 2. Global Styling Rules (Cartoonish & Neo-Brutalist)
-- **Borders:** Every main element (cards, buttons, modals, badges) MUST have thick, dark borders. Use `border-4 border-slate-900`.
-- **Corners:** Everything must be heavily rounded. Use `rounded-2xl`, `rounded-3xl`, or `rounded-full`.
-- **Shadows:** Do not use soft drop shadows. Use hard/solid offset shadows to create a 3D comic effect. Use `shadow-[4px_4px_0px_0px_#0f172a]`. When a button is clicked, it should translate down and the shadow should disappear (simulate pressing).
+## Cartoon / neo-brutalist çerçeve
 
-## 3. Color Palette (Soft & Friendly)
-- **Background:** Pure White (`bg-pure-white` or `bg-white`)
-- **Primary (Sun/Energy):** Sunny Yellow (`bg-sunny-yellow`)
-- **Secondary (Battery/Eco):** Mint Green (`bg-mint-green`)
-- **Accent (Peach/Soft):** Soft Peach (`bg-soft-peach`)
-- **Text:** Dark Slate (`text-slate-900`) for high contrast.
+- Konteynerler: **`border-4 border-slate-900`** (kalın koyu çerçeve; eski comic stil).
+- Metin ana rengi: **`text-shade`** (`#2A2A33`). İkinci kademe: `text-shade-2`, hafif: `text-shade-soft`.
+- Sert görünümlü gölge (`ink` ile hizalı): **`shadow-[4px_4px_0px_0px_#2A2A33]`** vb. İnce ayar kullanıcı paletindeki **`--shade`** ile aynıdır.
 
-## 4. Custom Colors (Tailwind v4)
+## Resmi palet (CSS ile birebir)
+
 ```css
-@theme {
-  --color-soft-peach: #FFE5D0;
-  --color-mint-green: #B8F4E3;
-  --color-sunny-yellow: #FFE066;
-  --color-pure-white: #FFFFFF;
-}
+/* 🌸 Pink */
+--color-blossom: #FFD3E2;
+--color-blossom-deep: #FF8FB3;
+
+/* 🌿 Green */
+--color-sprout: #C8F3CC;
+--color-sprout-deep: #6AD47A;
+
+/* 🌊 Blue */
+--color-breeze: #CDEAFF;
+--color-breeze-deep: #6BBFF2;
+
+/* 🌕 Yellow */
+--color-sunlit: #FFEF9E;
+--color-sunlit-deep: #F6C944;
+
+/* 🪵 Neutral / Ink */
+--color-shade: #2A2A33;
+--color-shade-2: #555566;
+--color-shade-soft: #8A8A99;
+
+/* 📄 Paper / Background */
+--color-background: #FFFDF7;
+--color-border: #E4E2DA;
 ```
 
-## 5. Component Blueprints (Tailwind Classes)
-- **Primary Button:** `bg-sunny-yellow border-4 border-slate-900 rounded-full font-bold text-slate-900 px-6 py-3 shadow-[4px_4px_0px_0px_#0f172a] active:translate-y-1 active:shadow-none transition-all`
-- **Secondary Button:** `bg-mint-green border-4 border-slate-900 rounded-full font-bold text-slate-900 px-6 py-3 shadow-[4px_4px_0px_0px_#0f172a] active:translate-y-1 active:shadow-none transition-all`
-- **Dashboard Card:** `bg-white border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]`
-- **Accent Card:** `bg-soft-peach border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]`
-- **Energy Bar (Container):** `w-full h-8 bg-slate-100 border-4 border-slate-900 rounded-full overflow-hidden`
-- **Energy Bar (Fill):** `h-full bg-mint-green`
+Tailwind kullanımları: `bg-blossom`, `text-shade`, **`border-slate-900`** (UI çerçevesi), `bg-border` (pasif track / nötr dolgu için palet `border` rengi), `bg-sunlit-deep`, …
 
-## 6. Animations (Framer Motion)
-- Use bouncy animations.
-- Pop-ups should scale from `0.8` to `1` with a `spring` transition.
+## Semantik kılavuzu
+
+| Amaç | Örnek token |
+|------|-------------|
+| Sayfa zemini | `bg-background` |
+| Pembe blok / hero | `bg-blossom` |
+| Pembe güçlü vurgu, “cast”, problem rozeti | `bg-blossom-deep`, `text-blossom-deep` |
+| Güneş / ana CTA butonları | `bg-sunlit-deep`, bant yüzeyi `bg-sunlit` |
+| Eko / ikincil buton / başarı | `bg-sprout-deep`, hafif alan `bg-sprout` |
+| Gökyüzü bölüm / mavi blok | `bg-breeze`, vurgulu `bg-breeze-deep` |
+| Kart içi yüzey (kontrast için) | `bg-white` (beyaz) — `Card` bileşeni |
+| Nötre yakın yüzey / footer iyileştirme | `bg-border` + opacity veya düz `bg-background` |
+
+## Bileşen özetleri
+
+- **Primary button:** `bg-sunlit-deep` + `border-slate-900` + sert gölge + `text-shade`
+- **Secondary button:** `bg-sprout-deep` + aynı çerçeve
+- **Accent / şeftali varyant:** `accent` → `bg-breeze-deep`; `peach` → `bg-blossom-deep`
+- **Progress track:** `bg-border` kenarları; dolgu: mint → `sprout-deep`, güneş → `sunlit-deep`
+- **Badge varsayılanı:** `bg-sunlit-deep`
+- **Modal:** zemin beyaz kart, kaplama `bg-shade/30`
+
+## Animasyon
+
+- Framer Motion: spring, pop-up için `scale: 0.8 → 1`.

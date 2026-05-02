@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion';
 
-const containerClasses = 'w-full h-8 bg-slate-100 border-4 border-slate-900 rounded-full overflow-hidden';
+const containerClasses =
+  'w-full h-8 bg-border border-4 border-slate-900 rounded-full overflow-hidden';
 
 const colorClasses = {
-  mint: 'bg-mint-green',
-  yellow: 'bg-sunny-yellow',
-  peach: 'bg-soft-peach',
-  blue: 'bg-blue-400',
+  mint: 'bg-sprout-deep',
+  eco: 'bg-sprout-deep',
+  yellow: 'bg-sunlit-deep',
+  solar: 'bg-sunlit-deep',
+  peach: 'bg-blossom-deep',
+  sky: 'bg-breeze-deep',
+  blue: 'bg-breeze-deep',
 };
 
 function ProgressBar({ value = 0, max = 100, color = 'mint', showLabel = false, className = '' }) {
@@ -17,8 +21,8 @@ function ProgressBar({ value = 0, max = 100, color = 'mint', showLabel = false, 
     <div className={`${className}`}>
       {showLabel && (
         <div className="flex justify-between mb-2">
-          <span className="font-bold text-sm">{value}</span>
-          <span className="font-bold text-sm">{max}</span>
+          <span className="font-bold text-sm text-shade-2">{value}</span>
+          <span className="font-bold text-sm text-shade-2">{max}</span>
         </div>
       )}
       <div className={containerClasses}>

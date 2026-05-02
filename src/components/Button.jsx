@@ -1,21 +1,23 @@
 import { motion } from 'framer-motion';
 
 const variants = {
-  primary: 'bg-sunny-yellow',
-  secondary: 'bg-mint-green',
-  peach: 'bg-soft-peach',
+  primary: 'bg-sunlit-deep',
+  secondary: 'bg-sprout-deep',
+  accent: 'bg-breeze-deep',
+  peach: 'bg-blossom-deep',
 };
 
-const baseClasses = 'border-4 border-slate-900 rounded-full font-bold text-slate-900 shadow-[4px_4px_0px_0px_#0f172a]';
+const baseClasses =
+  'border-4 border-slate-900 rounded-full font-bold text-shade shadow-[4px_4px_0px_0px_#2A2A33]';
 
-function Button({ 
-  children, 
-  variant = 'primary', 
-  icon: Icon, 
-  onClick, 
+function Button({
+  children,
+  variant = 'primary',
+  icon: Icon,
+  onClick,
   className = '',
   disabled = false,
-  ...props 
+  ...props
 }) {
   const variantClasses = variants[variant] || variants.primary;
   const isIconOnly = Icon && !children;

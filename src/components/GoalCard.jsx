@@ -9,16 +9,11 @@ function GoalCard({ title, current, goal, reward, rewardType = 'XP' }) {
     <Card variant="accent">
       <div className="flex justify-between items-center mb-3">
         <span className="font-bold text-lg">{title}</span>
-        <Badge color={isCompleted ? 'bg-mint-green' : 'bg-sunny-yellow'}>
+        <Badge color={isCompleted ? 'bg-sprout-deep' : 'bg-sunlit-deep'}>
           {isCompleted ? '✓' : `+${reward} ${rewardType}`}
         </Badge>
       </div>
-      <ProgressBar 
-        value={current} 
-        max={goal} 
-        color={isCompleted ? 'mint' : 'yellow'} 
-        showLabel 
-      />
+      <ProgressBar value={current} max={goal} color={isCompleted ? 'mint' : 'yellow'} showLabel />
     </Card>
   );
 }

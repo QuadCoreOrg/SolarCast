@@ -1,439 +1,443 @@
 import React, { useState } from "react";
-import useGameStore from "./store/useGameStore";
 import { motion } from "framer-motion";
 import Button from "./components/Button";
 import Card from "./components/Card";
 import Badge from "./components/Badge";
-import ProgressBar from "./components/ProgressBar";
-import StatCard from "./components/StatCard";
-import EnergyBar from "./components/EnergyBar";
-import InventoryItem from "./components/InventoryItem";
-import GoalCard from "./components/GoalCard";
-import ToastContainer from "./components/ToastContainer";
-import Modal from "./components/Modal";
-import Header from "./components/Header";
-import TabBar from "./components/TabBar";
-import useToastStore from "./hooks/useToast";
 import {
+  ArrowDown,
+  Play,
+  Mail,
+  Cloud,
   Sun,
-  Battery,
-  Settings,
-  Coins,
-  Zap,
   Star,
+  Zap,
   Trophy,
-  SolarPanel,
+  CloudSun,
+  TrendingUp,
+  Link,
+  Code,
+  MessageCircle
 } from "lucide-react";
 
 function App() {
-  const {
-    energy,
-    coins,
-    level,
-    experience,
-    dailyGoal,
-    currentProgress,
-    addEnergy,
-    consumeEnergy,
-    addCoins,
-    addExperience,
-    updateProgress,
-  } = useGameStore();
+  const [showGame, setShowGame] = useState(false);
 
-  const { addToast } = useToastStore();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("dashboard");
-
-  const handleGenerateEnergy = () => {
-    addEnergy(10);
-    addCoins(5);
-    addExperience(15);
-    updateProgress(currentProgress + 10);
-  };
-
-  const handleConsumeEnergy = () => {
-    consumeEnergy(5);
-  };
-
-  const expNeeded = level * 100;
-  const progressPercent = (currentProgress / dailyGoal) * 100;
+  if (showGame) {
+    return <GameView />;
+  }
 
   return (
-    <div className="min-h-screen bg-pure-white font-['Nunito'] text-slate-900">
-      <Header logo="☀️ SolarCast" coins={coins} level={level} />
-      <div className="max-w-md mx-auto space-y-6 p-6 pb-24">
-        <div className="bg-white border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-bold text-xl">⚡ Energy</span>
-            <span className="font-black text-2xl">{energy}</span>
+    <div className="min-h-screen bg-background font-['Nunito'] text-shade">
+      {/* Header */}
+      <header className="bg-background border-b-4 border-slate-900 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sun width={32} height={32} className="text-sunlit-deep" />
+            <span className="font-black text-2xl text-shade">solarcast</span>
           </div>
-          <div className="w-full h-8 bg-slate-100 border-4 border-slate-900 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-mint-green"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min(energy, 100)}%` }}
-              transition={{ type: "spring", stiffness: 200 }}
-            />
-          </div>
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="#howto" className="font-bold hover:text-breeze-deep transition-colors">
+              Nasıl Oynanır?
+            </a>
+            <a href="#features" className="font-bold hover:text-breeze-deep transition-colors">
+              Özellikler
+            </a>
+            <a href="#contact" className="font-bold hover:text-breeze-deep transition-colors">
+              İletişim
+            </a>
+          </nav>
+          <Button variant="primary" onClick={() => setShowGame(true)}>
+            Oyuna Başla →
+          </Button>
         </div>
+      </header>
 
-        <div className="bg-soft-peach border-4 border-slate-900 rounded-3xl p-6 shadow-[6px_6px_0px_0px_#0f172a]">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-bold text-xl">🎯 Daily Goal</span>
-            <span className="font-bold">
-              {currentProgress} / {dailyGoal}
-            </span>
-          </div>
-          <div className="w-full h-8 bg-white border-4 border-slate-900 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-sunny-yellow"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min(progressPercent, 100)}%` }}
-              transition={{ type: "spring", stiffness: 200 }}
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="flex-1 bg-mint-green border-4 border-slate-900 rounded-3xl p-4 shadow-[4px_4px_0px_0px_#0f172a] text-center">
-            <div className="font-bold text-lg">🪙 Coins</div>
-            <div className="font-black text-3xl">{coins}</div>
-          </div>
-          <div className="flex-1 bg-sunny-yellow border-4 border-slate-900 rounded-3xl p-4 shadow-[4px_4px_0px_0px_#0f172a] text-center">
-            <div className="font-bold text-lg">⭐ Level</div>
-            <div className="font-black text-3xl">{level}</div>
-          </div>
-        </div>
-
-        <div className="bg-slate-100 border-4 border-slate-900 rounded-2xl p-4">
-          <div className="flex justify-between mb-2">
-            <span className="font-bold">Experience</span>
-            <span className="font-bold">
-              {experience} / {expNeeded}
-            </span>
-          </div>
-          <div className="w-full h-4 bg-white border-2 border-slate-900 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-400"
-              style={{ width: `${(experience / expNeeded) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95, y: 2 }}
-            onClick={handleGenerateEnergy}
-            className="flex-1 bg-sunny-yellow border-4 border-slate-900 rounded-full font-bold text-slate-900 px-6 py-4 shadow-[4px_4px_0px_0px_#0f172a] active:translate-y-1 active:shadow-none transition-all text-lg"
+      {/* Hero Section */}
+      <section className="py-16 px-4 bg-blossom">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="inline-block mb-4"
           >
-            ☀️ Generate
-          </motion.button>
+            <Badge color="bg-sunlit-deep" className="flex items-center gap-2">
+              <Trophy width={20} height={20} /> Hackathon Projesi • Gerçek
+              Zamanlı API
+            </Badge>
+          </motion.div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95, y: 2 }}
-            onClick={handleConsumeEnergy}
-            className="flex-1 bg-soft-peach border-4 border-slate-900 rounded-full font-bold text-slate-900 px-6 py-4 shadow-[4px_4px_0px_0px_#0f172a] active:translate-y-1 active:shadow-none transition-all text-lg"
+          {/* Hero Title with brand styling */}
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="hero-title flex items-center justify-center gap-4 mb-8"
+            style={{
+              fontFamily: "'Nunito', sans-serif",
+              fontWeight: 900,
+              fontSize: "clamp(60px, 16vw, 140px)",
+              lineHeight: 1,
+              letterSpacing: "-0.04em",
+            }}
           >
-            🔋 Use
-          </motion.button>
+            <span
+              className="brand"
+              style={{
+                color: "#FFFFFF",
+                WebkitTextStroke: "4px #2A2A33",
+                paintOrder: "stroke fill",
+                textShadow: "0 8px 0 #2A2A33",
+              }}
+            >
+              solar<span className="text-blossom-deep">cast</span>
+            </span>
+            <span
+              className="brand-cross text-sunlit-deep"
+              style={{ display: "inline-flex" }}
+              aria-hidden="true"
+            >
+              <Zap
+                size={60}
+                className="md:scale-125"
+              />
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-xl md:text-2xl font-bold text-shade-soft mb-8 max-w-2xl mx-auto"
+          >
+            Güneş enerjisini yönetmeyi ve satmayı öğreten, gerçek verilere
+            dayalı en eğlenceli simülasyon.
+          </motion.p>
+
+<motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Button
+              variant="accent"
+              onClick={() =>
+                document
+                  .getElementById("demo")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="flex items-center gap-2"
+            >
+              <Play /> Oyunu İncele
+            </Button>
+            <Button variant="secondary" onClick={() => setShowGame(true)}>
+              Oyuna Başla →
+            </Button>
+          </motion.div>
         </div>
+      </section>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-mint-green border-4 border-slate-900 rounded-2xl p-4 text-center"
-        >
-          <span className="font-bold">
-            🎮 Game Started! Tap Generate to earn energy & coins.
-          </span>
-        </motion.div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            Button Variants
-          </h2>
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-4 justify-center">
-              <Button
-                variant="primary"
-                onClick={() => alert("Primary clicked!")}
-              >
-                Primary Button
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => alert("Secondary clicked!")}
-              >
-                Secondary Button
-              </Button>
-            </div>
-            <div className="flex gap-4 justify-center">
-              <Button variant="peach" onClick={() => alert("Peach clicked!")}>
-                Peach Button
-              </Button>
-            </div>
-            <div className="flex gap-4 justify-center">
-              <Button
-                icon={Sun}
-                variant="primary"
-                onClick={() => alert("Icon Primary!")}
-              />
-              <Button
-                icon={Battery}
-                variant="secondary"
-                onClick={() => alert("Icon Secondary!")}
-              />
-              <Button
-                icon={Settings}
-                variant="peach"
-                onClick={() => alert("Icon Peach!")}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            Card Variants
-          </h2>
-          <div className="flex flex-col gap-4">
+      {/* Problem & Solution Section */}
+      <section className="py-16 px-4 bg-background">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
             <Card variant="dashboard">
-              <h3 className="font-bold text-xl mb-2">Dashboard Card</h3>
-              <p className="text-slate-600">
-                This is a white dashboard card with shadow.
+              <Badge color="bg-blossom-deep">PROBLEM</Badge>
+              <h3 className="font-black text-xl mt-3 mb-2">
+                Yenilenebilir enerji karmaşıktır.
+              </h3>
+              <p className="font-bold text-shade-soft">
+                Güneşlenme süreleri, batarya kapasiteleri ve anlık elektrik
+                piyasası (EPİAŞ) fiyatlarını takip etmek sıkıcı ve zordur.
               </p>
             </Card>
             <Card variant="accent">
-              <h3 className="font-bold text-xl mb-2">Accent Card</h3>
-              <p className="text-slate-600">
-                This is a soft peach accent card with shadow.
+              <Badge color="bg-sprout-deep">ÇÖZÜM</Badge>
+              <h3 className="font-black text-xl mt-3 mb-2">
+                Her şey oyunlaştırıldı.
+              </h3>
+              <p className="font-bold text-shade-soft">
+                Konumunu seç, hava durumuna göre enerjini üret ve piyasa
+                fiyatları yükseldiğinde satarak güneş imparatorluğunu kur.
               </p>
             </Card>
           </div>
         </div>
+      </section>
 
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            Badge Variants
+      {/* Demo Section */}
+      <section id="demo" className="py-16 px-4 bg-background">
+        <div className="max-w-4xl mx-auto text-center">
+          <Badge color="bg-sunlit-deep">DEMO - 3 DK</Badge>
+          <h2 className="text-4xl font-black mt-4 mb-6">
+            Güneş çiftliğin çalışırken gör.
           </h2>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Badge color="bg-sunny-yellow">Level 5</Badge>
-            <Badge color="bg-mint-green">+100 XP</Badge>
-            <Badge color="bg-soft-peach">Achievement</Badge>
-            <Badge color="bg-blue-400">New!</Badge>
-            <Badge color="bg-orange-400">Top Seller</Badge>
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            ProgressBar Variants
-          </h2>
-          <div className="flex flex-col gap-4">
-            <ProgressBar value={75} max={100} color="mint" showLabel />
-            <ProgressBar value={60} max={100} color="yellow" showLabel />
-            <ProgressBar value={45} max={100} color="peach" showLabel />
-            <ProgressBar value={90} max={100} color="blue" showLabel />
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            StatCard Variants
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <StatCard icon={Coins} label="Coins" value="1,250" color="yellow" />
-            <StatCard icon={Zap} label="Energy" value="85" color="mint" />
-            <StatCard icon={Star} label="Level" value="12" color="peach" />
-            <StatCard icon={Trophy} label="Rank" value="#5" color="blue" />
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">EnergyBar</h2>
-          <div className="flex flex-col gap-4">
-            <EnergyBar current={450} max={1000} />
-            <EnergyBar current={75} max={100} />
-            <EnergyBar current={1200} max={2000} />
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            InventoryItem
-          </h2>
-          <div className="flex flex-col gap-4">
-            <InventoryItem
-              icon={Sun}
-              name="Solar Panel Lv.1"
-              detail="+5⚡/sn"
-              price={100}
-              onBuy={() => alert("Bought Solar Panel!")}
-            />
-            <InventoryItem
-              icon={Battery}
-              name="Battery Lv.1"
-              detail="+20 capacity"
-              price={150}
-              onBuy={() => alert("Bought Battery!")}
-            />
-            <InventoryItem
-              icon={SolarPanel}
-              name="Upgrade"
-              detail="x2 efficiency"
-              price={500}
-              disabled
-            />
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">GoalCard</h2>
-          <div className="flex flex-col gap-4">
-            <GoalCard
-              title="Daily Energy Goal"
-              current={65}
-              goal={100}
-              reward={50}
-              rewardType="XP"
-            />
-            <GoalCard
-              title="Weekly Challenge"
-              current={100}
-              goal={100}
-              reward={200}
-              rewardType="Coins"
-            />
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">
-            Toast / Alert
-          </h2>
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-3 justify-center">
-              <span className="font-bold text-sm">Bottom Center:</span>
-              <Button
-                variant="primary"
-                onClick={() =>
-                  addToast("+100 Coins!", "success", 3000, "bottom-center")
-                }
-              >
-                Success
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  addToast("Goal Done!", "warning", 3000, "bottom-center")
-                }
-              >
-                Warning
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <span className="font-bold text-sm">Top Center:</span>
-              <Button
-                variant="primary"
-                onClick={() => addToast("+50 XP", "info", 3000, "top-center")}
-              >
-                Info
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => addToast("Error!", "error", 3000, "top-center")}
-              >
-                Error
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <span className="font-bold text-sm">Top Right:</span>
-              <Button
-                variant="peach"
-                onClick={() =>
-                  addToast("New Item!", "success", 3000, "top-right")
-                }
-              >
-                Notification
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() =>
-                  addToast("Level Up!", "success", 3000, "top-right")
-                }
-              >
-                Achievement
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t-4 border-slate-900 pt-6 mt-6">
-          <h2 className="font-black text-2xl mb-4 text-center">Modal</h2>
-          <div className="flex justify-center">
-            <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-              Open Modal
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Solar Panel Upgraded!"
-      >
-        <div className="space-y-4">
-          <p className="font-bold text-slate-700">
-            Congratulations! You've upgraded your solar panel to Level 2.
+          <p className="font-bold text-shade-soft mb-8 max-w-xl mx-auto">
+            Panellerini kurduğunda, havanın bulutlanmasının üretimi nasıl
+            etkilediğini ve bataryanın ne kadar hızlı dolduğunu izle.
           </p>
-          <div className="bg-mint-green border-4 border-slate-900 rounded-2xl p-4">
-            <div className="font-bold">+10 ⚡ Energy/sec</div>
-            <div className="font-bold text-sm text-slate-600">
-              Efficiency increased!
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="relative bg-breeze border-4 border-slate-900 rounded-3xl p-8 shadow-[8px_8px_0px_0px_#2A2A33] cursor-pointer"
+            onClick={() => setShowGame(true)}
+          >
+            <div className="aspect-video bg-background rounded-2xl border-4 border-slate-900 flex items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center gap-4">
+                <Sun width={60} height={60} className="text-sunlit-deep" />
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.5,
+                        delay: i * 0.1,
+                      }}
+                      className="w-12 h-16 bg-sunlit-deep border-4 border-slate-900 rounded-t-lg"
+                    />
+                  ))}
+                </div>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="absolute w-20 h-20 bg-sunlit-deep border-4 border-slate-900 rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_#2A2A33]"
+              >
+                <Play className="w-8 h-8 ml-1" />
+              </motion.button>
             </div>
+          </motion.div>
+
+          <Button variant="accent" className="mt-6">
+            Simülasyonu Aç →
+          </Button>
+        </div>
+      </section>
+
+      {/* How to Play Section */}
+      <section id="howto" className="py-16 px-4 bg-breeze">
+        <div className="max-w-4xl mx-auto text-center">
+          <Badge color="bg-sprout-deep">NASIL ÇALIŞIR?</Badge>
+          <h2 className="text-4xl font-black mt-4 mb-10">
+            Dört adım, tek imparatorluk.
+          </h2>
+
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <Card variant="dashboard" className="flex-1 text-left">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-sprout-deep border-4 border-slate-900 rounded-full flex items-center justify-center font-black">
+                    1
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg">🗺️ Şehrini Seç</div>
+                    <div className="text-sm text-shade-soft">
+                      Türkiye haritasından şehrini seç. Open-Meteo ile gerçek
+                      güneş verilerini çekiyoruz.
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              <ArrowDown className="w-8 h-8 text-shade rotate-0 md:rotate-90" />
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <Card variant="dashboard" className="flex-1 text-left">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-sunlit-deep border-4 border-slate-900 rounded-full flex items-center justify-center font-black">
+                    2
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg flex items-center gap-2">
+                      <Sun width={20} height={20} /> Panelleri Kur
+                    </div>
+                    <div className="text-sm text-shade-soft">
+                      Başlangıç bütçenle ilk panellerini satın al ve enerji
+                      üretmeye başla.
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              <ArrowDown className="w-8 h-8 text-shade rotate-0 md:rotate-90" />
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <Card variant="dashboard" className="flex-1 text-left">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-background border-4 border-slate-900 rounded-full flex items-center justify-center font-black">
+                    3
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg">🔋 Depola ve Sat</div>
+                    <div className="text-sm text-shade-soft">
+                      Enerjiyi bataryanda biriktir. EPİAŞ verileriyle fiyatlar
+                      yükseldiğinde şebekeye sat!
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              <ArrowDown className="w-8 h-8 text-shade rotate-0 md:rotate-90" />
+            </div>
+
+            <Card
+              variant="accent"
+              className="flex-1 text-left border-4 border-slate-900"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-breeze-deep border-4 border-slate-900 rounded-full flex items-center justify-center font-black">
+                  4
+                </div>
+                <div>
+                  <div className="font-bold text-lg">📈 Sistemini Büyüt</div>
+                  <div className="text-sm text-shade-soft">
+                    Kazandığın paralarla yeni nesil paneller al, bataryanı
+                    geliştir, seviye atla.
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
-          <div className="flex gap-3">
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-16 px-4 bg-sunlit">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <Badge color="bg-background">İÇERİDE NELER VAR?</Badge>
+            <h2 className="text-4xl font-black mt-4">
+              Gerçek Veriler, Gerçekçi Ekonomi.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card variant="dashboard">
+              <Badge color="bg-breeze-deep">CANLI VERİ</Badge>
+              <h3 className="font-black text-xl mt-3 mb-2 flex items-center gap-2">
+                <CloudSun className="w-6 h-6" /> Open-Meteo Entegrasyonu
+              </h3>
+              <p className="font-bold text-shade-soft mb-4">
+                Hava bulutluysa üretimin düşer. Gerçek dünyadaki hava durumu,
+                oyun içi stratejini doğrudan etkiler.
+              </p>
+              <ul className="font-bold text-sm text-shade-2 space-y-1">
+                <li>✔ Anlık bulut kapalılığı</li>
+                <li>✔ Güneş radyasyonu katsayısı</li>
+              </ul>
+            </Card>
+
+            <Card variant="dashboard">
+              <Badge color="bg-sprout-deep">TİCARET</Badge>
+              <h3 className="font-black text-xl mt-3 mb-2 flex items-center gap-2">
+                <TrendingUp className="w-6 h-6" /> Dinamik Enerji Piyasası
+              </h3>
+              <p className="font-bold text-shade-soft mb-4">
+                Elektrik fiyatları günün saatine göre değişir (EPİAŞ
+                simülasyonu). Enerjini ne zaman satacağına sen karar ver.
+              </p>
+              <ul className="font-bold text-sm text-shade-2 space-y-1">
+                <li>✔ Saatlik fiyat dalgalanmaları</li>
+                <li>✔ Batarya kapasite yönetimi</li>
+              </ul>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="py-16 px-4 bg-breeze">
+        <div className="max-w-4xl mx-auto text-center">
+          <Badge color="bg-sunlit-deep">İLETİŞİM</Badge>
+          <h2 className="text-4xl font-black mt-4 mb-6">
+            Geliştiricilerle tanışın.
+          </h2>
+          <p className="font-bold text-shade-soft mb-8">
+            Bu proje 8 saatlik bir hackathon kapsamında Vibe Coding ile
+            geliştirilmiştir.
+          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: Mail, label: "E-Posta", color: "bg-sunlit-deep text-shade" },
+              { icon: Code, label: "GitHub", color: "bg-background text-shade" },
+              { icon: Link, label: "LinkedIn", color: "bg-breeze-deep text-shade" },
+              {
+                icon: MessageCircle,
+                label: "X / Twitter",
+                color: "bg-blossom text-shade",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ scale: 1.05 }}
+                className={`${item.color} border-4 border-slate-900 rounded-2xl p-4 shadow-[4px_4px_0px_0px_#2A2A33] cursor-pointer`}
+              >
+                <item.icon className="w-8 h-8 mx-auto mb-2" />
+                <span className="font-bold text-sm">{item.label}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer CTA */}
+      <section className="py-16 px-4 bg-background">
+        <div className="max-w-2xl mx-auto text-center">
+          <Badge color="bg-sprout-deep">HAZIR MISIN?</Badge>
+          <h2 className="text-4xl font-black mt-4 mb-6">
+            Güneş tarlana adım at.
+          </h2>
+          <p className="font-bold text-shade-soft mb-8">
+            Kayıt yok. Sadece şehrini seç ve ilk panelini kur.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               variant="primary"
-              onClick={() => {
-                setIsModalOpen(false);
-                addToast("Upgrade Complete!", "success", 3000, "top-right");
-              }}
+              className="text-lg px-8 py-4"
+              onClick={() => setShowGame(true)}
             >
-              Confirm
+              Oyuna Başla →
             </Button>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+            <Button
+              variant="secondary"
+              className="text-lg px-8 py-4 flex items-center gap-2"
+            >
+              <Star width={20} height={20} /> GitHub'da Yıldız Ver
             </Button>
           </div>
         </div>
-      </Modal>
+      </section>
 
-      <div className="border-t-4 border-slate-900 pt-6 mt-6">
-        <h2 className="font-black text-2xl mb-4 text-center">
-          Header & TabBar
-        </h2>
-        <div className="bg-mint-green border-4 border-slate-900 rounded-2xl p-4 text-center mb-4">
-          <span className="font-bold">Active Tab: </span>
-          <span className="font-black uppercase">{activeTab}</span>
+      {/* Bottom Footer */}
+      <footer className="bg-border/40 border-t-4 border-slate-900 text-shade-2 py-6 px-4">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Zap width={28} height={28} className="text-sunlit-deep" />
+            <span className="font-black text-xl text-shade">SolarCast</span>
+          </div>
+          <div className="font-bold text-sm text-shade-soft">
+            © 2026 SolarCast Ekibi
+          </div>
         </div>
-        <div className="flex justify-center gap-4">
-          <Button variant="primary" onClick={() => addCoins(100)}>
-            +100 Coins
-          </Button>
-          <Button variant="secondary" onClick={() => addExperience(50)}>
-            +50 XP
-          </Button>
-        </div>
+      </footer>
+    </div>
+  );
+}
+
+function GameView() {
+  return (
+    <div className="min-h-screen bg-background font-['Nunito'] text-shade flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-black mb-4">🚀 Oyun Alanı</h1>
+        <p className="font-bold text-shade-soft mb-6">
+          Yakında burada oyun olacak!
+        </p>
+        <Button variant="primary" onClick={() => window.location.reload()}>
+          ← Landing Page'e Dön
+        </Button>
       </div>
-
-      <ToastContainer />
-      <TabBar activeTab={activeTab} onChange={setActiveTab} />
     </div>
   );
 }

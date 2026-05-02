@@ -54,8 +54,8 @@ Generate Energy → Earn Coins/XP → Buy Upgrades → Generate More Energy
 
 ## 6. UI/UX Guidelines
 - Cartoonish & Neo-Brutalist design
-- Thick dark borders (border-4 border-slate-900)
+- Thick dark UI borders: **`border-4 border-slate-900`**; gölgeler **`#2A2A33` (`shade`)** ile sabit offset. (Palet `--border` yalnızca `bg-border` gibi dolgularda kullanılabilir.)
 - Heavy rounding (rounded-3xl, rounded-full)
 - Hard offset shadows
 - Nunito font family
-- Vibrant but soft color palette
+- Official pastel theme: blossom, sprout, breeze, sunlit + ink + paper (`docs/design-system.md`)

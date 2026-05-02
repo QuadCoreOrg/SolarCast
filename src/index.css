@@ -1,12 +1,45 @@
 @import "tailwindcss";
 
+/* SolarCast — resmi renk teması (paper + blossom / sprout / breeze / sunlit + ink) */
 @theme {
-  --color-soft-peach: #FFE5D0;
-  --color-mint-green: #B8F4E3;
-  --color-sunny-yellow: #FFE066;
-  --color-pure-white: #FFFFFF;
+  --color-background: #fffdf7;
+  --color-border: #e4e2da;
+  --color-shade: #2a2a33;
+  --color-shade-2: #555566;
+  --color-shade-soft: #8a8a99;
+
+  --color-blossom: #ffd3e2;
+  --color-blossom-deep: #ff8fb3;
+
+  --color-sprout: #c8f3cc;
+  --color-sprout-deep: #6ad47a;
+
+  --color-breeze: #cdeaff;
+  --color-breeze-deep: #6bbff2;
+
+  --color-sunlit: #ffef9e;
+  --color-sunlit-deep: #f6c944;
+}
+
+/* Aynı palet — vanilla CSS / inline style için */
+:root {
+  --blossom: #ffd3e2;
+  --blossom-deep: #ff8fb3;
+  --sprout: #c8f3cc;
+  --sprout-deep: #6ad47a;
+  --breeze: #cdeaff;
+  --breeze-deep: #6bbff2;
+  --sunlit: #ffef9e;
+  --sunlit-deep: #f6c944;
+  --shade: #2a2a33;
+  --shade-2: #555566;
+  --shade-soft: #8a8a99;
+  --background: #fffdf7;
+  --border: #e4e2da;
 }
 
 body {
   font-family: 'Nunito', sans-serif;
+  background-color: var(--background);
+  color: var(--shade);
 }

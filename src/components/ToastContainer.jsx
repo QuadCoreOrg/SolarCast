@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useToastStore from '../hooks/useToast';
 
 const colorClasses = {
-  success: 'bg-mint-green',
-  warning: 'bg-sunny-yellow',
-  error: 'bg-orange-400',
-  info: 'bg-blue-400',
+  success: 'bg-sprout',
+  warning: 'bg-blossom',
+  error: 'bg-sunlit',
+  info: 'bg-breeze',
 };
 
 const positionClasses = {
@@ -33,40 +33,41 @@ function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 
   const groupedToasts = {
-    'bottom-center': toasts.filter(t => t.position === 'bottom-center' || !t.position),
-    'top-center': toasts.filter(t => t.position === 'top-center'),
-    'top-right': toasts.filter(t => t.position === 'top-right'),
+    'bottom-center': toasts.filter((t) => t.position === 'bottom-center' || !t.position),
+    'top-center': toasts.filter((t) => t.position === 'top-center'),
+    'top-right': toasts.filter((t) => t.position === 'top-right'),
   };
 
   return (
     <>
-      {Object.entries(groupedToasts).map(([position, positionToasts]) => (
-        positionToasts.length > 0 && (
-          <div 
-            key={position} 
-            className={`fixed ${positionClasses[position]} z-50 flex flex-col gap-2 ${position === 'top-right' ? 'items-end' : 'items-center'}`}
-          >
-            <AnimatePresence>
-              {positionToasts.map((toast) => {
-                const animation = getAnimation(toast.position || 'bottom-center');
-                return (
-                  <motion.div
-                    key={toast.id}
-                    initial={animation.initial}
-                    animate={animation.animate}
-                    exit={animation.exit}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                    className={`border-4 border-slate-900 rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_#0f172a] font-bold text-slate-900 cursor-pointer ${colorClasses[toast.type] || colorClasses.success}`}
-                    onClick={() => removeToast(toast.id)}
-                  >
-                    {toast.message}
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        )
-      ))}
+      {Object.entries(groupedToasts).map(
+        ([position, positionToasts]) =>
+          positionToasts.length > 0 && (
+            <div
+              key={position}
+              className={`fixed ${positionClasses[position]} z-50 flex flex-col gap-2 ${position === 'top-right' ? 'items-end' : 'items-center'}`}
+            >
+              <AnimatePresence>
+                {positionToasts.map((toast) => {
+                  const animation = getAnimation(toast.position || 'bottom-center');
+                  return (
+                    <motion.div
+                      key={toast.id}
+                      initial={animation.initial}
+                      animate={animation.animate}
+                      exit={animation.exit}
+                      transition={{ type: 'spring', stiffness: 300 }}
+                      className={`border-4 border-slate-900 rounded-2xl px-6 py-4 shadow-[6px_6px_0px_0px_#2A2A33] font-bold text-shade cursor-pointer ${colorClasses[toast.type] || colorClasses.success}`}
+                      onClick={() => removeToast(toast.id)}
+                    >
+                      {toast.message}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          )
+      )}
     </>
   );
 }
