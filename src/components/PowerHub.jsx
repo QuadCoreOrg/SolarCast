@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { BatteryCharging, CirclePlus, Lock, SunMedium } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
 
-function PowerHub({ openUpgradeModal, openMarketModal }) {
+function PowerHub({ openUpgradeModal, openMarketModal, onEmptySlotClick }) {
   const inventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
   const unlockedSlots = useGameStore((s) => s.unlockedSlots)
@@ -72,7 +72,7 @@ function PowerHub({ openUpgradeModal, openMarketModal }) {
             <motion.button
               key={`empty-${slotIndex}`}
               type="button"
-              onClick={openMarketModal}
+              onClick={() => onEmptySlotClick?.(slotIndex)}
               whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ y: 0, scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 380, damping: 26 }}
