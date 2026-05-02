@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
+import { geoCentroid } from 'd3-geo'
+import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker } from 'react-simple-maps'
 
 const TURKEY_GEO_URL =
   'https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json'
@@ -14,22 +15,8 @@ const getMapFill = ({ isSelected, isHovered }) => {
 function TurkeyMap({ onSelectCity, selectedCity }) {
   const [hoveredCity, setHoveredCity] = useState('')
 
-  const labelCity = hoveredCity || selectedCity
-
-  const getCityLabelStyle = () => {
-    if (hoveredCity) return 'text-blossom-deep'
-    if (selectedCity) return 'text-sunlit-deep'
-    return 'text-shade-soft'
-  }
-
   return (
     <div className="w-full h-full relative bg-breeze/10">
-      <div className="absolute top-2 right-2 z-10 border-2 border-slate-900 bg-background/90 rounded-lg px-3 py-1 shadow-[2px_2px_0px_0px_var(--shade)]">
-        <span className={`font-black text-xs ${getCityLabelStyle()}`}>
-          {labelCity || 'Uzerine gel'}
-        </span>
-      </div>
-
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -43,46 +30,85 @@ function TurkeyMap({ onSelectCity, selectedCity }) {
         >
           <ZoomableGroup center={[35, 39]} zoom={1}>
             <Geographies geography={TURKEY_GEO_URL}>
-              {({ geographies }) =>
-                geographies.map((geo) => {
-                  const cityName = geo.properties.name
-                  const isSelected = selectedCity === cityName
-                  const isHovered = hoveredCity === cityName
+              {({ geographies }) => {
+                const activeCityName = hoveredCity || selectedCity
+                const activeGeo = geographies.find((geo) => geo.properties?.name === activeCityName)
+                const activeCentroid = activeGeo ? geoCentroid(activeGeo) : null
 
-                  return (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      onMouseEnter={() => setHoveredCity(cityName)}
-                      onMouseLeave={() => setHoveredCity('')}
-                      onClick={() => onSelectCity(cityName)}
-                      style={{
-                        default: {
-                          fill: getMapFill({ isSelected, isHovered }),
-                          stroke: '#2A2A33',
-                          strokeWidth: isSelected ? 1.8 : 0.9,
-                          outline: 'none',
-                          cursor: 'pointer',
-                        },
-                        hover: {
-                          fill: '#FF8FB3',
-                          stroke: '#2A2A33',
-                          strokeWidth: 1.5,
-                          outline: 'none',
-                          cursor: 'pointer',
-                        },
-                        pressed: {
-                          fill: '#F6C944',
-                          stroke: '#2A2A33',
-                          strokeWidth: 1.6,
-                          outline: 'none',
-                          cursor: 'pointer',
-                        },
-                      }}
-                    />
-                  )
-                })
-              }
+                return (
+                  <>
+                    {geographies.map((geo) => {
+                      const cityName = geo.properties.name
+                      const isSelected = selectedCity === cityName
+                      const isHovered = hoveredCity === cityName
+
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          onMouseEnter={() => setHoveredCity(cityName)}
+                          onMouseLeave={() => setHoveredCity('')}
+                          onClick={() =>
+                            onSelectCity(cityName, {
+                              id: geo.id ?? null,
+                              name: cityName,
+                              properties: geo.properties ?? {},
+                              centroid: geoCentroid(geo),
+                              rsmKey: geo.rsmKey,
+                            })
+                          }
+                          style={{
+                            default: {
+                              fill: getMapFill({ isSelected, isHovered }),
+                              stroke: '#2A2A33',
+                              strokeWidth: isSelected ? 1.8 : 0.9,
+                              outline: 'none',
+                              cursor: 'pointer',
+                            },
+                            hover: {
+                              fill: '#FF8FB3',
+                              stroke: '#2A2A33',
+                              strokeWidth: 1.5,
+                              outline: 'none',
+                              cursor: 'pointer',
+                            },
+                            pressed: {
+                              fill: '#F6C944',
+                              stroke: '#2A2A33',
+                              strokeWidth: 1.6,
+                              outline: 'none',
+                              cursor: 'pointer',
+                            },
+                          }}
+                        />
+                      )
+                    })}
+
+                    {activeGeo && Array.isArray(activeCentroid) && (
+                      <Marker coordinates={activeCentroid}>
+                        <g transform="translate(0, -12)">
+                          <text
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            style={{
+                              fontFamily: 'Nunito, sans-serif',
+                              fontWeight: 900,
+                              fontSize: 10,
+                              fill: '#2A2A33',
+                              stroke: '#FFFDF7',
+                              strokeWidth: 4,
+                              paintOrder: 'stroke',
+                              pointerEvents: 'none',
+                            }}
+                          >
+                            {activeCityName}
+                          </text>
+                        </g>
+                      </Marker>
+                    )}
+                  </>
+                )
+              }}
             </Geographies>
           </ZoomableGroup>
         </ComposableMap>

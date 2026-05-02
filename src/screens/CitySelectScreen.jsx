@@ -18,6 +18,11 @@ function CitySelectScreen() {
     setScreen('how_to')
   }
 
+  const handleCitySelect = (cityName, cityData) => {
+    setSelectedCity(cityName)
+    console.log('Selected city details:', cityData)
+  }
+
   const handleStart = () => {
     if (selectedCity) {
       setScreen('dashboard')
@@ -63,7 +68,7 @@ function CitySelectScreen() {
       </div>
 
       <div className="flex-1 relative bg-background/50 rounded-2xl border-3 border-shade overflow-hidden shadow-[4px_4px_0px_0px_var(--shade)]">
-        <TurkeyMap onSelectCity={setSelectedCity} selectedCity={selectedCity} />
+        <TurkeyMap onSelectCity={handleCitySelect} selectedCity={selectedCity} />
         <AnimatePresence>
           {selectedCity && (
             <motion.div
@@ -72,10 +77,12 @@ function CitySelectScreen() {
               exit={{ opacity: 0, y: 10 }}
               className="absolute top-3 left-3 right-3"
             >
-              <div className="bg-background/95 backdrop-blur border-3 border-shade rounded-xl p-2 shadow-[3px_3px_0px_0px_var(--shade)]">
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-shade text-sm">Seçilen:</span>
-                  <span className="font-bold text-blossom-deep text-sm">{selectedCity}</span>
+              <div className="bg-background/95 backdrop-blur border-3 border-shade rounded-xl px-3 py-2 shadow-[3px_3px_0px_0px_var(--shade)]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-black text-shade text-xs">Secilen Sehir</span>
+                  <span className="inline-flex items-center rounded-full border-2 border-slate-900 bg-sunlit px-3 py-0.5 text-sm font-black text-shade shadow-[2px_2px_0px_0px_var(--shade)]">
+                    {selectedCity}
+                  </span>
                 </div>
               </div>
             </motion.div>
