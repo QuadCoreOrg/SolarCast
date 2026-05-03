@@ -139,8 +139,7 @@ function ExploreScreen() {
                 <p className="font-black text-xs text-shade-2">Araştırma Laboratuvarı</p>
                 <h1 className="font-black text-3xl">Araştırma Geliştirmeleri</h1>
                 <p className="font-bold text-sm text-shade-2 mt-1 leading-relaxed">
-                  Her araştırma hem seviye hem de küçük bir Coin lisansı ile açılır; fiyatlar{' '}
-                  <span className="font-black">gameData.js</span> ile tutarlıdır.
+                  Her araştırma hem seviye hem de küçük bir Coin lisansı ile açılır.
                 </p>
               </div>
               <span className="rounded-full border-3 border-slate-900 bg-breeze px-4 py-2 font-black text-sm">

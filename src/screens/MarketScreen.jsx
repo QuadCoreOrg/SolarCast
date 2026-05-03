@@ -142,8 +142,7 @@ function MarketScreen() {
           <div>
             <h1 className="font-black text-2xl">Mağaza</h1>
             <p className="font-bold text-sm text-shade-2 leading-relaxed">
-              Paneller, depolar ve araştırma fiyatları tek kaynak:{' '}
-              <span className="font-black">gameData.js</span>
+              Paneller, depolar ve araştırma fiyatları.
             </p>
           </div>
           <span className="rounded-full border-2 border-slate-900 bg-background px-3 py-1 text-xs font-black">
