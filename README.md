@@ -11,7 +11,7 @@ Takım sunumunu buraya ekleyin:
 
 |                  |                                                                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Google Drive** | *[https://drive.google.com/drive/folders/13OJiq-1Lid-icB1FzPCgicxxy9oHGZRs](https://drive.google.com/drive/folders/13OJiq-1Lid-icB1FzPCgicxxy9oHGZRs])* |
+| **Google Drive** | *[https://drive.google.com/drive/folders/13OJiq-1Lid-icB1FzPCgicxxy9oHGZRs](https://drive.google.com/drive/folders/13OJiq-1Lid-icB1FzPCgicxxy9oHGZRs)* |
 
 
 ## Özellikler
