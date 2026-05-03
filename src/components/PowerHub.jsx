@@ -8,13 +8,13 @@ function PowerHub({
   onCleanPanel,
   onEmptySlotClick,
   onLockedSlotClick,
-  unlockedSlots: unlockedSlotsProp,
+  unlockedPanelSlots: unlockedPanelSlotsProp,
   inventoryItems,
 }) {
   const storeInventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
-  const storeUnlockedSlots = useGameStore((s) => s.unlockedSlots)
-  const unlockedSlots = unlockedSlotsProp ?? storeUnlockedSlots
+  const storeUnlockedPanelSlots = useGameStore((s) => s.unlockedPanelSlots)
+  const unlockedSlots = unlockedPanelSlotsProp ?? storeUnlockedPanelSlots
   const inventory = inventoryItems ?? storeInventory
 
   const slots = Array.from({ length: maxSlots }, (_, index) => inventory[index] || null)

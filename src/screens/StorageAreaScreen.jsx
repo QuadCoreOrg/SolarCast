@@ -27,12 +27,12 @@ function StorageAreaScreen() {
   const coins = useGameStore((s) => s.coins)
   const level = useGameStore((s) => s.level)
   const maxSlots = useGameStore((s) => s.maxSlots)
-  const unlockedSlots = useGameStore((s) => s.unlockedSlots)
+  const unlockedBatterySlots = useGameStore((s) => s.unlockedBatterySlots)
   const unlockedResearches = useGameStore((s) => s.unlockedResearches)
   const activeBatteries = useGameStore((s) => s.activeBatteries)
   const currentEnergy = useGameStore((s) => s.currentEnergy)
   const buyItem = useGameStore((s) => s.buyItem)
-  const unlockHubSlot = useGameStore((s) => s.unlockHubSlot)
+  const unlockBatterySlot = useGameStore((s) => s.unlockBatterySlot)
   const upgradeBattery = useGameStore((s) => s.upgradeBattery)
 
   const [batteryUpgradeError, setBatteryUpgradeError] = useState('')
@@ -131,8 +131,8 @@ function StorageAreaScreen() {
   )
 
   const openEmptySlotPurchaseModal = (slotIndex) => {
-    if (slotIndex >= unlockedSlots) return
-    if (activeBatteries.length >= unlockedSlots) return
+    if (slotIndex >= unlockedBatterySlots) return
+    if (activeBatteries.length >= unlockedBatterySlots) return
     const first = batteryOptions[0]
     setEmptySlotModalIndex(slotIndex)
     setSelectedBatteryKey(first?.id ?? null)
@@ -147,8 +147,8 @@ function StorageAreaScreen() {
 
   const handleBatteryPurchase = () => {
     if (!selectedEquipment) return
-    if (activeBatteries.length >= unlockedSlots) {
-      setPurchaseError('Önce yeni yuva aç.')
+    if (activeBatteries.length >= unlockedBatterySlots) {
+      setPurchaseError('Önce depolama alanında batarya yuvası aç.')
       return
     }
     const result = buyItem('battery', selectedEquipment.gameKey)
@@ -182,7 +182,7 @@ function StorageAreaScreen() {
             <div className="flex items-center justify-between mb-3">
               <h1 className="font-black text-2xl">Depolama Alanı</h1>
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-3 py-1 text-xs font-black">
-                {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
+                {filledSlots}/{unlockedBatterySlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
             <p className="text-xs font-bold text-shade-2 mb-3 leading-relaxed">
@@ -220,7 +220,7 @@ function StorageAreaScreen() {
             >
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 {slots.map((item, slotIndex) => {
-                  const isLocked = slotIndex >= unlockedSlots
+                  const isLocked = slotIndex >= unlockedBatterySlots
 
                   if (isLocked) {
                     return (
@@ -394,7 +394,7 @@ function StorageAreaScreen() {
                   sfxError()
                   return
                 }
-                const result = unlockHubSlot()
+                const result = unlockBatterySlot()
                 if (!result.ok) {
                   setUnlockError(result.reason || 'Yuva açılamadı.')
                   return
