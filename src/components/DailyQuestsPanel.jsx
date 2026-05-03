@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react'
-import { CheckCircle2, CircleDashed, ListChecks, Sparkles } from 'lucide-react'
+import { CheckCircle2, CircleDashed, ListChecks } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
 import { DAILY_QUEST_GEMINI_REWARD } from '../constants/castAi'
 

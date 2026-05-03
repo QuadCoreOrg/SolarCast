@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BatteryCharging, CloudSun, Gauge, MapPin, SunMedium, Zap, ZapOff } from 'lucide-react'
+import { BatteryCharging, CloudSun, Cpu, Gauge, MapPin, SunMedium, Zap, ZapOff } from 'lucide-react'
 import { BATTERY_DEF_BY_TYPE_ID, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
 import useGameStore from '../store/useGameStore'
 import Header from '../components/Header'
@@ -387,22 +387,6 @@ function DashboardScreen() {
                   <span className="text-base font-black">{dashboardData.city.name}</span>
                 </div>
               </div>
-              <div className="rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 shadow-[3px_3px_0px_0px_var(--shade)]">
-                <p className="text-xs font-black text-shade-2">Anlık Üretim Verim Skoru</p>
-                <p className="text-xl font-black">
-                  <AnimatedNumber
-                    value={dashboardData.city.efficiencyPct}
-                    prefix="%"
-                    integer
-                    variant="tween"
-                  />
-                </p>
-                {dashboardData.city.dataHint ? (
-                  <p className="text-[10px] font-bold text-shade-2 mt-0.5 leading-tight">
-                    {dashboardData.city.dataHint}
-                  </p>
-                ) : null}
-              </div>
             </div>
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs font-black mb-1">
@@ -437,6 +421,40 @@ function DashboardScreen() {
                   Depo dolu — yeni batarya alın ya da enerjilerinizi satın.
                 </p>
               )}
+            </div>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+              <div className="rounded-xl border-3 border-slate-900 bg-background px-3 py-2 shadow-[2px_2px_0px_0px_var(--shade)]">
+                <p className="text-xs font-black text-shade-2">{dashboardData.city.potentialProductionLabel}</p>
+                <p className="text-lg font-black">
+                  <AnimatedNumber value={dashboardData.city.potentialProductionKw} maxFractionDigits={2} />{' '}
+                  {dashboardData.city.potentialProductionUnit}
+                </p>
+              </div>
+              <div className="rounded-xl border-3 border-slate-900 bg-breeze/75 px-3 py-2 shadow-[2px_2px_0px_0px_var(--shade)]">
+                <p className="text-xs font-black text-shade-2">{dashboardData.city.sunHoursLabel}</p>
+                <p className="text-lg font-black">
+                  <AnimatedNumber value={dashboardData.city.sunHours} maxFractionDigits={1} /> saat
+                </p>
+              </div>
+              <div className="rounded-xl border-3 border-slate-900 bg-sprout/75 px-3 py-2 shadow-[2px_2px_0px_0px_var(--shade)]">
+                <p className="text-xs font-black text-shade-2">Sıcaklık</p>
+                <p className="text-lg font-black">
+                  <AnimatedNumber value={dashboardData.city.temperature} maxFractionDigits={1} suffix="°C" />
+                </p>
+              </div>
+              <div className="rounded-xl border-3 border-slate-900 bg-blossom/75 px-3 py-2 shadow-[2px_2px_0px_0px_var(--shade)]">
+                <p className="text-xs font-black text-shade-2">Güncel hava</p>
+                <p className="text-base font-black flex items-center gap-2 leading-tight">
+                  <CloudSun className="w-5 h-5 shrink-0" />
+                  {dashboardData.city.weather}
+                </p>
+              </div>
+              <div className="rounded-xl border-3 border-slate-900 bg-sunlit-deep/90 px-3 py-2 shadow-[2px_2px_0px_0px_var(--shade)]">
+                <p className="text-xs font-black text-shade-2">Verimlilik</p>
+                <p className="text-lg font-black">
+                  <AnimatedNumber value={dashboardData.city.efficiencyPct} prefix="%" integer variant="tween" />
+                </p>
+              </div>
             </div>
           </article>
 
@@ -514,123 +532,120 @@ function DashboardScreen() {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 xl:items-start">
-            <article className="xl:col-span-5 rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)] min-w-0">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="font-black text-lg">{dashboardData.city.name} - Şehir Bilgisi</h2>
-                  {dashboardData.city.dataHint ? (
-                    <p className="text-[11px] font-bold text-shade-2 mt-0.5">{dashboardData.city.dataHint}</p>
-                  ) : null}
+            <div className="xl:col-span-8 space-y-3 min-w-0">
+              <article className="rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)] min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="shrink-0 rounded-xl border-3 border-slate-900 bg-breeze p-2 shadow-[2px_2px_0px_0px_var(--shade)]">
+                      <Cpu className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="font-black text-lg">Şehir Bilgisayarı</h2>
+                      <p className="text-[11px] font-bold text-shade-2 mt-0.5">
+                        {dashboardData.city.name} ağı · {dashboardData.city.dataHint || 'yerel güneş profili'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="self-start sm:self-auto rounded-full border-2 border-slate-900 bg-sunlit px-3 py-1 text-xs font-black text-center leading-tight">
+                    {dashboardData.city.productionBadge}
+                  </span>
                 </div>
-                <span className="rounded-full border-2 border-slate-900 bg-sunlit px-3 py-1 text-xs font-black text-center max-w-40 sm:max-w-none leading-tight">
-                  {dashboardData.city.productionBadge}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div className="rounded-xl border-3 border-slate-900 bg-sunlit/70 px-3 py-2">
-                  <p className="text-xs font-black text-shade-2">{dashboardData.city.potentialProductionLabel}</p>
-                  <p className="text-lg font-black">
-                    <AnimatedNumber value={dashboardData.city.potentialProductionKw} maxFractionDigits={2} />{' '}
-                    {dashboardData.city.potentialProductionUnit}
-                  </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="rounded-xl border-3 border-slate-900 bg-sunlit/70 px-3 py-2">
+                    <p className="text-xs font-black text-shade-2">Aktif şehir</p>
+                    <p className="text-lg font-black">{dashboardData.city.name}</p>
+                  </div>
+                  <div className="rounded-xl border-3 border-slate-900 bg-breeze/70 px-3 py-2">
+                    <p className="text-xs font-black text-shade-2">Simülasyon saati</p>
+                    <p className="text-lg font-black">{dashboardData.game.time}</p>
+                  </div>
+                  <div className="rounded-xl border-3 border-slate-900 bg-sprout/70 px-3 py-2">
+                    <p className="text-xs font-black text-shade-2">Gün</p>
+                    <p className="text-lg font-black">{dashboardData.game.day}</p>
+                  </div>
                 </div>
-                <div className="rounded-xl border-3 border-slate-900 bg-breeze/70 px-3 py-2">
-                  <p className="text-xs font-black text-shade-2">{dashboardData.city.sunHoursLabel}</p>
-                  <p className="text-lg font-black">
-                    <AnimatedNumber value={dashboardData.city.sunHours} maxFractionDigits={1} /> saat
-                  </p>
-                </div>
-                <div className="rounded-xl border-3 border-slate-900 bg-sprout/70 px-3 py-2">
-                  <p className="text-xs font-black text-shade-2">Sıcaklık</p>
-                  <p className="text-lg font-black">
-                    <AnimatedNumber value={dashboardData.city.temperature} maxFractionDigits={1} suffix="°C" />
-                  </p>
-                </div>
-                <div className="rounded-xl border-3 border-slate-900 bg-blossom/70 px-3 py-2">
-                  <p className="text-xs font-black text-shade-2">Güncel Hava Durumu</p>
-                  <p className="text-lg font-black flex items-center gap-2">
-                    <CloudSun className="w-5 h-5" />
-                    {dashboardData.city.weather}
-                  </p>
-                </div>
-                <div className="rounded-xl border-3 border-slate-900 bg-background px-3 py-2 sm:col-span-2">
-                  <p className="text-xs font-black text-shade-2">Verimlilik</p>
-                  <p className="text-lg font-black">
-                    <AnimatedNumber value={dashboardData.city.efficiencyPct} prefix="%" integer variant="tween" />
-                  </p>
-                </div>
-              </div>
-            </article>
-
-            <div className="xl:col-span-4 min-w-0">
-              <DailyQuestsPanel />
-            </div>
-
-            <div className="space-y-3 xl:col-span-3 min-w-0">
-              <article className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
-                <h2 className="font-black text-base mb-2">Anlık enerji piyasası</h2>
-                <p className="text-[11px] font-bold text-shade-2 mb-1">
-                  {isDayActive
-                    ? `Gün içi kotasyon · simülasyon saati ${String(hour).padStart(2, '0')}:00`
-                    : 'Satış modalında süre beklerken fiyat kilitlenecek'}
-                </p>
-                <p className="text-2xl font-black">
-                  <AnimatedNumber
-                    value={dashboardData.market.instantPrice}
-                    minFractionDigits={2}
-                    maxFractionDigits={2}
-                  />{' '}
-                  Coin/kWh
-                </p>
-                <p className="text-sm font-black mt-1">Trend: {dashboardData.market.trend}</p>
-                <p className="text-xs font-black mt-1">Volatilite: {dashboardData.market.volatility}</p>
-                <div className="mt-3 space-y-2">
-                  <p className="text-[10px] font-bold text-shade-2 leading-snug">
-                    CastAI, satış zamanı için sana bir fikir verir ({CAST_AI_REQUEST_CREDITS} kredi / soru). Sadece düğmeye
-                    bastığında çalışır; cevap gelene kadar gün bekler. Kredin:{' '}
-                    <span className="font-black tabular-nums">{geminiCredits.toLocaleString('tr-TR')}</span>.
-                  </p>
-                  <button
-                    type="button"
-                    disabled={!hasStartedGame}
-                    onClick={openCastAiModal}
-                    className="w-full rounded-2xl border-4 border-slate-900 bg-blossom/80 px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-blossom disabled:opacity-45 disabled:pointer-events-none"
-                  >
-                    CastAI’den sor ({CAST_AI_REQUEST_CREDITS} kredi)
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  disabled={!canOpenSellModal}
-                  onClick={() => openSellModal()}
-                  className="mt-3 w-full rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-sunlit/70 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[4px_4px_0px_0px_var(--shade)]"
-                >
-                  Enerji sat
-                </button>
-                {!hasBatteryStorage && (
-                  <p className="text-[11px] font-bold text-shade-2 mt-2">Depolama yok — önce batarya takın.</p>
-                )}
               </article>
-              <article className="rounded-2xl border-4 border-slate-900 bg-breeze-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
-                <h2 className="font-black text-base mb-2">Oyun İçi Zaman / Döngü</h2>
-                <p className="text-2xl font-black">
-                  {isDayActive ? (
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <article className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)] min-w-0">
+                  <h2 className="font-black text-base mb-2">Anlık enerji piyasası</h2>
+                  <p className="text-[11px] font-bold text-shade-2 mb-1">
+                    {isDayActive
+                      ? `Gün içi kotasyon · ${String(hour).padStart(2, '0')}:00`
+                      : 'Satış modalında fiyat kilitlenir'}
+                  </p>
+                  <p className="text-2xl font-black">
                     <AnimatedNumber
-                      value={hour}
-                      integer
-                      padStartDigits={2}
-                      suffix=":00"
-                      variant="spring"
-                      className="font-black"
-                    />
-                  ) : (
-                    dashboardData.game.time
+                      value={dashboardData.market.instantPrice}
+                      minFractionDigits={2}
+                      maxFractionDigits={2}
+                    />{' '}
+                    Coin/kWh
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <div className="rounded-xl border-3 border-slate-900 bg-background/80 px-3 py-2">
+                      <p className="text-[10px] font-black text-shade-2">Trend</p>
+                      <p className="text-sm font-black">{dashboardData.market.trend}</p>
+                    </div>
+                    <div className="rounded-xl border-3 border-slate-900 bg-background/80 px-3 py-2">
+                      <p className="text-[10px] font-black text-shade-2">Volatilite</p>
+                      <p className="text-sm font-black">{dashboardData.market.volatility}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={!hasStartedGame}
+                      onClick={openCastAiModal}
+                      className="w-full rounded-2xl border-4 border-slate-900 bg-blossom/80 px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-blossom disabled:opacity-45 disabled:pointer-events-none"
+                    >
+                      CastAI’den sor ({CAST_AI_REQUEST_CREDITS} kredi)
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!canOpenSellModal}
+                      onClick={() => openSellModal()}
+                      className="w-full rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-sunlit/70 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[4px_4px_0px_0px_var(--shade)]"
+                    >
+                      Enerji sat
+                    </button>
+                  </div>
+                  {!hasBatteryStorage && (
+                    <p className="text-[11px] font-bold text-shade-2 mt-2">Depolama yok — önce batarya takın.</p>
                   )}
-                </p>
-                <p className="text-sm font-black mt-1">{dashboardData.game.cycle}</p>
-                <p className="text-xs font-black mt-1">{dashboardData.game.day}</p>
-              </article>
+                </article>
+
+                <article className="rounded-2xl border-4 border-slate-900 bg-breeze-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)] min-w-0">
+                  <h2 className="font-black text-base mb-2">Oyun İçi Zaman / Döngü</h2>
+                  <p className="text-3xl font-black">
+                    {isDayActive ? (
+                      <AnimatedNumber
+                        value={hour}
+                        integer
+                        padStartDigits={2}
+                        suffix=":00"
+                        variant="spring"
+                        className="font-black"
+                      />
+                    ) : (
+                      dashboardData.game.time
+                    )}
+                  </p>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                    <div className="rounded-xl border-3 border-slate-900 bg-background/75 px-3 py-2">
+                      <p className="text-[10px] font-black text-shade-2">Döngü</p>
+                      <p className="text-sm font-black">{dashboardData.game.cycle}</p>
+                    </div>
+                    <div className="rounded-xl border-3 border-slate-900 bg-sunlit/75 px-3 py-2">
+                      <p className="text-[10px] font-black text-shade-2">Takvim</p>
+                      <p className="text-sm font-black">{dashboardData.game.day}</p>
+                    </div>
+                  </div>
+                </article>
+              </div>
             </div>
+
+            <DailyQuestsPanel className="xl:col-span-4 xl:sticky xl:top-24" />
           </div>
         </section>
       </main>

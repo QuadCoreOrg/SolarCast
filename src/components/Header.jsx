@@ -8,8 +8,6 @@ import PlayerProgressModal from './PlayerProgressModal'
 function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) {
   const [progressOpen, setProgressOpen] = useState(false)
   const hasStartedGame = useGameStore((s) => s.hasStartedGame)
-  const startDay = useGameStore((s) => s.startDay)
-  const endDay = useGameStore((s) => s.endDay)
   const gameLoopMode = useGameStore((s) => s.gameLoopMode)
   const setGameLoopMode = useGameStore((s) => s.setGameLoopMode)
   const day = useGameStore((s) => s.day)
@@ -46,40 +44,31 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
               <div className="rounded-full border-3 border-slate-900 bg-background p-1 shadow-[2px_2px_0px_0px_var(--shade)] flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => setGameLoopMode('pause')}
+                  onClick={() => setGameLoopMode(gameLoopMode === 'pause' ? 'play' : 'pause')}
                   className={`rounded-full border-2 px-2 py-1 transition-colors ${
                     gameLoopMode === 'pause'
                       ? 'border-slate-900 bg-blossom'
                       : 'border-transparent bg-transparent hover:bg-breeze'
                   }`}
-                  title="Duraklat"
-                  aria-label="Duraklat"
+                  title={gameLoopMode === 'pause' ? 'Devam et' : 'Durdur'}
+                  aria-label={gameLoopMode === 'pause' ? 'Devam et' : 'Durdur'}
                 >
-                  <Pause className="w-3.5 h-3.5" />
+                  {gameLoopMode === 'pause' ? (
+                    <Play className="w-3.5 h-3.5" />
+                  ) : (
+                    <Pause className="w-3.5 h-3.5" />
+                  )}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setGameLoopMode('play')}
-                  className={`rounded-full border-2 px-2 py-1 transition-colors ${
-                    gameLoopMode === 'play'
-                      ? 'border-slate-900 bg-sprout'
-                      : 'border-transparent bg-transparent hover:bg-breeze'
-                  }`}
-                  title="Normal hız"
-                  aria-label="Normal hız"
-                >
-                  <Play className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGameLoopMode('fast')}
+                  onClick={() => setGameLoopMode(gameLoopMode === 'fast' ? 'play' : 'fast')}
                   className={`rounded-full border-2 px-2 py-1 transition-colors ${
                     gameLoopMode === 'fast'
                       ? 'border-slate-900 bg-sunlit'
                       : 'border-transparent bg-transparent hover:bg-breeze'
                   }`}
-                  title="Hızlandır / otomatik gün atla"
-                  aria-label="Hızlandır / otomatik gün atla"
+                  title={gameLoopMode === 'fast' ? 'Normal hıza dön' : 'Hızlandır'}
+                  aria-label={gameLoopMode === 'fast' ? 'Normal hıza dön' : 'Hızlandır'}
                 >
                   <FastForward className="w-3.5 h-3.5" />
                 </button>
@@ -90,25 +79,6 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-2.5 py-1 text-[11px] font-black whitespace-nowrap">
                 Gün {day} • Saat {String(hour).padStart(2, '0')}:00
               </span>
-              {!isDayActive ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void startDay()
-                  }}
-                  className="rounded-full border-3 border-slate-900 bg-sunlit px-3 py-1 text-[11px] font-black uppercase tracking-wide shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-px whitespace-nowrap"
-                >
-                  Yeni Güne Geç
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => endDay()}
-                  className="rounded-full border-3 border-slate-900 bg-background px-3 py-1 text-[11px] font-black shadow-[2px_2px_0px_0px_var(--shade)] active:translate-y-px whitespace-nowrap"
-                >
-                  Günü Bitir
-                </button>
-              )}
             </>
           )}
           {hasStartedGame ? (
