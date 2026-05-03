@@ -185,7 +185,8 @@ const createInitialGameState = () => ({
   upgrades: [],
   inventory: GAME_CONFIG.powerHub.initialInventory,
   maxSlots: GAME_CONFIG.powerHub.maxSlots,
-  unlockedSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
+  unlockedPanelSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
+  unlockedBatterySlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
 
   dailyGoal: 80,
   currentProgress: 0,
@@ -309,7 +310,8 @@ const persistedStateKeys = [
   'upgrades',
   'inventory',
   'maxSlots',
-  'unlockedSlots',
+  'unlockedPanelSlots',
+  'unlockedBatterySlots',
   'dailyGoal',
   'currentProgress',
   'research',
@@ -485,13 +487,13 @@ const useGameStore = create(
       },
 
       /**
-       * Panel ve depolama için ortak yuva kilidini açar (fiyat gameData).
+       * Güç merkezinde ek panel yuvası açar (fiyat gameData).
        * @returns {{ ok: true } | { ok: false, reason: string }}
        */
-      unlockHubSlot: () => {
+      unlockPanelSlot: () => {
         const state = get()
-        if (state.unlockedSlots >= state.maxSlots) {
-          return { ok: false, reason: 'Tüm yuvalar zaten açık' }
+        if (state.unlockedPanelSlots >= state.maxSlots) {
+          return { ok: false, reason: 'Tüm panel yuvaları zaten açık' }
         }
         if (state.coins < HUB_SLOT_UNLOCK_COST) {
           sfxError()
@@ -506,8 +508,37 @@ const useGameStore = create(
         const nextSlots = state.unlockedSlots + 1
         const after = { ...state, coins: nextCoins, unlockedSlots: nextSlots, experience, level }
         set({
-          coins: nextCoins,
-          unlockedSlots: nextSlots,
+          coins: state.coins - HUB_SLOT_UNLOCK_COST,
+          unlockedPanelSlots: state.unlockedPanelSlots + 1,
+          experience,
+          level,
+          ...touch(),
+        })
+        sfxBuying()
+        return { ok: true }
+      },
+
+      /**
+       * Depolama alanında ek batarya yuvası açar (fiyat gameData).
+       * @returns {{ ok: true } | { ok: false, reason: string }}
+       */
+      unlockBatterySlot: () => {
+        const state = get()
+        if (state.unlockedBatterySlots >= state.maxSlots) {
+          return { ok: false, reason: 'Tüm depolama yuvaları zaten açık' }
+        }
+        if (state.coins < HUB_SLOT_UNLOCK_COST) {
+          sfxError()
+          return { ok: false, reason: 'Yetersiz coin' }
+        }
+        const { experience, level } = applyExperienceGain(
+          state.experience,
+          state.level,
+          XP_REWARDS.hubSlotUnlock,
+        )
+        set({
+          coins: state.coins - HUB_SLOT_UNLOCK_COST,
+          unlockedBatterySlots: state.unlockedBatterySlots + 1,
           experience,
           level,
           ...dailyQuestPatchStorageExpanded(state, after),
@@ -563,8 +594,8 @@ const useGameStore = create(
         if (type === 'panel') {
           const def = PANELS_BY_KEY[key]
           if (!def) return { ok: false, reason: 'Geçersiz panel' }
-          if (state.activePanels.length >= state.unlockedSlots) {
-            return { ok: false, reason: 'Boş panel yuvası yok — önce yuva aç' }
+          if (state.activePanels.length >= state.unlockedPanelSlots) {
+            return { ok: false, reason: 'Boş panel yuvası yok — önce panel yuvası aç' }
           }
           if (def.reqLevel != null && state.level < def.reqLevel) {
             return { ok: false, reason: 'Seviye yetersiz' }
@@ -604,8 +635,8 @@ const useGameStore = create(
         if (type === 'battery') {
           const def = BATTERIES_BY_KEY[key]
           if (!def) return { ok: false, reason: 'Geçersiz batarya' }
-          if (state.activeBatteries.length >= state.unlockedSlots) {
-            return { ok: false, reason: 'Boş depolama yuvası yok — önce yuva aç' }
+          if (state.activeBatteries.length >= state.unlockedBatterySlots) {
+            return { ok: false, reason: 'Boş depolama yuvası yok — önce depolama yuvası aç' }
           }
           if (def.reqLevel != null && state.level < def.reqLevel) {
             return { ok: false, reason: 'Seviye yetersiz' }
@@ -913,9 +944,10 @@ const useGameStore = create(
         if (!persistedState || version >= GAME_STORE_VERSION) {
           return persistedState
         }
-        const rawGc = persistedState.geminiCredits
-        const geminiCreditsMigrated =
-          typeof rawGc === 'number' && Number.isFinite(rawGc) && rawGc >= 0 ? Math.floor(rawGc) : 300
+        const legacyUnlockedSlots =
+          typeof persistedState.unlockedSlots === 'number'
+            ? persistedState.unlockedSlots
+            : GAME_CONFIG.powerHub.initialUnlockedSlots
         const migrated = {
           ...persistedState,
           coins: persistedState.coins ?? persistedState.credits ?? 2000,
@@ -942,9 +974,18 @@ const useGameStore = create(
           activeBatteries: persistedState.activeBatteries ?? [],
           dailyForecast: persistedState.dailyForecast ?? [],
           unlockedResearches: persistedState.unlockedResearches ?? [],
+          unlockedPanelSlots:
+            typeof persistedState.unlockedPanelSlots === 'number'
+              ? persistedState.unlockedPanelSlots
+              : legacyUnlockedSlots,
+          unlockedBatterySlots:
+            typeof persistedState.unlockedBatterySlots === 'number'
+              ? persistedState.unlockedBatterySlots
+              : legacyUnlockedSlots,
         }
         delete migrated.credits
         delete migrated.energy
+        delete migrated.unlockedSlots
         return migrated
       },
       merge: (persistedState, currentState) =>

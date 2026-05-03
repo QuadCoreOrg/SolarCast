@@ -88,7 +88,7 @@ export default function PlayerProgressModal({
             <li>Enerji satışı (satılan kWh başına + taban)</li>
             <li>Yeni panel veya depolama ünitesi satın alma</li>
             <li>Panel temizliği (verim geri kazanımı)</li>
-            <li>Birleşik yuva kilidi açma</li>
+            <li>Güç merkezi veya depolama yuvası ayrı ayrı açma</li>
             <li>Pazar veya laboratuvarda araştırma tamamlama</li>
           </ul>
         </div>
