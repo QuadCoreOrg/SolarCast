@@ -39,7 +39,8 @@ import {
 } from '../utils/dailyQuests'
 
 const GAME_STORAGE_KEY = 'solarcast_game_store'
-const GAME_STORE_VERSION = 7
+const GAME_STORE_VERSION = 8
+const DEFAULT_GAME_LOOP_MODE = 'pause'
 
 /**
  * Günlük görev ilerlemesi (takvim günü değiştiyse yeni set açılır, sonra olay uygulanır).
@@ -174,7 +175,7 @@ const createInitialGameState = () => ({
   day: 1,
   hour: 0,
   isDayActive: false,
-  gameLoopMode: 'play',
+  gameLoopMode: DEFAULT_GAME_LOOP_MODE,
   activePanels: [],
   activeBatteries: [],
   unlockedResearches: [],
@@ -268,9 +269,7 @@ const normalizePersistedState = (state) => {
     gameLoopMode:
       state.gameLoopMode === 'pause' || state.gameLoopMode === 'fast' || state.gameLoopMode === 'play'
         ? state.gameLoopMode
-        : state.autoAdvanceDay
-          ? 'fast'
-          : 'play',
+        : DEFAULT_GAME_LOOP_MODE,
     activePanels: Array.isArray(state.activePanels) ? state.activePanels : [],
     activeBatteries: Array.isArray(state.activeBatteries) ? state.activeBatteries : [],
     unlockedResearches,
@@ -355,6 +354,7 @@ const useGameStore = create(
             hasStartedGame: true,
             currentScreen: 'dashboard',
             startedAt: state.startedAt || now,
+            gameLoopMode: DEFAULT_GAME_LOOP_MODE,
             lastUpdatedAt: now,
           }
         }),
@@ -974,14 +974,7 @@ const useGameStore = create(
           day: persistedState.day ?? 1,
           hour: persistedState.hour ?? 0,
           isDayActive: Boolean(persistedState.isDayActive),
-          gameLoopMode:
-            persistedState.gameLoopMode === 'pause' ||
-            persistedState.gameLoopMode === 'fast' ||
-            persistedState.gameLoopMode === 'play'
-              ? persistedState.gameLoopMode
-              : persistedState.autoAdvanceDay
-                ? 'fast'
-                : 'play',
+          gameLoopMode: DEFAULT_GAME_LOOP_MODE,
           activePanels: persistedState.activePanels ?? [],
           activeBatteries: persistedState.activeBatteries ?? [],
           dailyForecast: persistedState.dailyForecast ?? [],

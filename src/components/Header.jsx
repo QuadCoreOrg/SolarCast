@@ -52,6 +52,7 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
                   }`}
                   title={gameLoopMode === 'pause' ? 'Devam et' : 'Durdur'}
                   aria-label={gameLoopMode === 'pause' ? 'Devam et' : 'Durdur'}
+                  aria-pressed={gameLoopMode === 'pause'}
                 >
                   {gameLoopMode === 'pause' ? (
                     <Play className="w-3.5 h-3.5" />
@@ -69,6 +70,7 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
                   }`}
                   title={gameLoopMode === 'fast' ? 'Normal hıza dön' : 'Hızlandır'}
                   aria-label={gameLoopMode === 'fast' ? 'Normal hıza dön' : 'Hızlandır'}
+                  aria-pressed={gameLoopMode === 'fast'}
                 >
                   <FastForward className="w-3.5 h-3.5" />
                 </button>
