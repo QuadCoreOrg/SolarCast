@@ -462,8 +462,7 @@ function StorageAreaScreen() {
               <div className="rounded-2xl border-4 border-slate-900 bg-background p-3 text-center">
                 <p className="text-sm font-black">Seçilebilir batarya yok</p>
                 <p className="text-xs text-shade-soft mt-1">
-                  Seviye veya araştırma şartlarını sağla (fiyatlar{' '}
-                  <span className="font-black">gameData.js</span>).
+                  Seviye veya araştırma şartlarını sağla
                 </p>
               </div>
             )}

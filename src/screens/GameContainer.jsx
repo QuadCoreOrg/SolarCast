@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'framer-motion'
 import LevelUpCelebration from '../components/LevelUpCelebration'
+import QuestRewardCelebration from '../components/QuestRewardCelebration'
 import useGameLoop from '../hooks/useGameLoop'
 import useGameStore from '../store/useGameStore'
 import HowToScreen from './HowToScreen'
@@ -18,6 +19,7 @@ function GameContainer() {
   return (
     <div className="game-wrapper h-screen bg-breeze">
       <LevelUpCelebration />
+      <QuestRewardCelebration />
       <AnimatePresence mode="wait">
         {currentScreen === 'how_to' && (
           <HowToScreen key="how_to" />
