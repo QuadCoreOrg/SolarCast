@@ -1,6 +1,6 @@
 const GAME_CONFIG = {
   powerHub: {
-    maxSlots: 6,
+    maxSlots: 9,
     initialUnlockedSlots: 1,
     initialInventory: [],
   },

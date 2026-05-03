@@ -279,6 +279,7 @@ const normalizePersistedState = (state) => {
     solarPanels: Array.isArray(state.solarPanels) ? state.solarPanels : [],
     batteries: Array.isArray(state.batteries) ? state.batteries : [],
     upgrades: Array.isArray(state.upgrades) ? state.upgrades : [],
+    maxSlots: GAME_CONFIG.powerHub.maxSlots,
   }
 }
 
@@ -309,7 +310,6 @@ const persistedStateKeys = [
   'batteries',
   'upgrades',
   'inventory',
-  'maxSlots',
   'unlockedPanelSlots',
   'unlockedBatterySlots',
   'dailyGoal',
