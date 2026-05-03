@@ -33,7 +33,7 @@ import { applyExperienceGain } from '../utils/progression'
 import { sfxBuying, sfxError } from '../utils/soundManager'
 
 const GAME_STORAGE_KEY = 'solarcast_game_store'
-const GAME_STORE_VERSION = 5
+const GAME_STORE_VERSION = 6
 
 const ONBOARDING_SCREENS = new Set(['how_to', 'city_select'])
 const VALID_SCREENS = new Set([
@@ -119,7 +119,8 @@ const createInitialGameState = () => ({
   upgrades: [],
   inventory: GAME_CONFIG.powerHub.initialInventory,
   maxSlots: GAME_CONFIG.powerHub.maxSlots,
-  unlockedSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
+  unlockedPanelSlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
+  unlockedBatterySlots: GAME_CONFIG.powerHub.initialUnlockedSlots,
 
   dailyGoal: 80,
   currentProgress: 0,
@@ -178,8 +179,30 @@ const normalizePersistedState = (state) => {
 
   const researchMerged = syncResearchFromUnlocks(unlockedResearches, researchBase)
 
+  const slotCap = GAME_CONFIG.powerHub.maxSlots
+  const slotLo = GAME_CONFIG.powerHub.initialUnlockedSlots
+  const normalizeSlotCount = (n, fallback) => {
+    const v = typeof n === 'number' && Number.isFinite(n) ? Math.floor(n) : fallback
+    return Math.min(slotCap, Math.max(slotLo, v))
+  }
+
+  const legacyUnlockedSlots =
+    typeof state.unlockedSlots === 'number' && Number.isFinite(state.unlockedSlots)
+      ? state.unlockedSlots
+      : null
+  const unlockedPanelSlots = normalizeSlotCount(
+    typeof state.unlockedPanelSlots === 'number' ? state.unlockedPanelSlots : null,
+    legacyUnlockedSlots ?? slotLo,
+  )
+  const unlockedBatterySlots = normalizeSlotCount(
+    typeof state.unlockedBatterySlots === 'number' ? state.unlockedBatterySlots : null,
+    legacyUnlockedSlots ?? slotLo,
+  )
+
+  const { unlockedSlots: _legacyHubSlots, ...stateRest } = state
+
   return {
-    ...state,
+    ...stateRest,
     currentScreen,
     coins,
     currentEnergy,
@@ -200,6 +223,8 @@ const normalizePersistedState = (state) => {
     solarPanels: Array.isArray(state.solarPanels) ? state.solarPanels : [],
     batteries: Array.isArray(state.batteries) ? state.batteries : [],
     upgrades: Array.isArray(state.upgrades) ? state.upgrades : [],
+    unlockedPanelSlots,
+    unlockedBatterySlots,
   }
 }
 
@@ -228,7 +253,8 @@ const persistedStateKeys = [
   'upgrades',
   'inventory',
   'maxSlots',
-  'unlockedSlots',
+  'unlockedPanelSlots',
+  'unlockedBatterySlots',
   'dailyGoal',
   'currentProgress',
   'research',
@@ -396,12 +422,18 @@ const useGameStore = create(
       },
 
       /**
-       * Panel ve depolama için ortak yuva kilidini açar (fiyat gameData).
+       * Güç merkezi (panel) veya depolama (batarya) yuvası için ayrı kilidi açar (fiyat gameData).
+       * @param {'panel' | 'battery'} hub
        * @returns {{ ok: true } | { ok: false, reason: string }}
        */
-      unlockHubSlot: () => {
+      unlockHubSlot: (hub) => {
         const state = get()
-        if (state.unlockedSlots >= state.maxSlots) {
+        if (hub !== 'panel' && hub !== 'battery') {
+          return { ok: false, reason: 'Geçersiz yuva tipi' }
+        }
+        const key = hub === 'panel' ? 'unlockedPanelSlots' : 'unlockedBatterySlots'
+        const current = state[key]
+        if (current >= state.maxSlots) {
           return { ok: false, reason: 'Tüm yuvalar zaten açık' }
         }
         if (state.coins < HUB_SLOT_UNLOCK_COST) {
@@ -415,7 +447,7 @@ const useGameStore = create(
         )
         set({
           coins: state.coins - HUB_SLOT_UNLOCK_COST,
-          unlockedSlots: state.unlockedSlots + 1,
+          [key]: current + 1,
           experience,
           level,
           ...touch(),
@@ -470,7 +502,7 @@ const useGameStore = create(
         if (type === 'panel') {
           const def = PANELS_BY_KEY[key]
           if (!def) return { ok: false, reason: 'Geçersiz panel' }
-          if (state.activePanels.length >= state.unlockedSlots) {
+          if (state.activePanels.length >= state.unlockedPanelSlots) {
             return { ok: false, reason: 'Boş panel yuvası yok — önce yuva aç' }
           }
           if (def.reqLevel != null && state.level < def.reqLevel) {
@@ -511,7 +543,7 @@ const useGameStore = create(
         if (type === 'battery') {
           const def = BATTERIES_BY_KEY[key]
           if (!def) return { ok: false, reason: 'Geçersiz batarya' }
-          if (state.activeBatteries.length >= state.unlockedSlots) {
+          if (state.activeBatteries.length >= state.unlockedBatterySlots) {
             return { ok: false, reason: 'Boş depolama yuvası yok — önce yuva aç' }
           }
           if (def.reqLevel != null && state.level < def.reqLevel) {
@@ -788,6 +820,14 @@ const useGameStore = create(
         }
         delete migrated.credits
         delete migrated.energy
+
+        if (version < 6 && typeof migrated.unlockedSlots === 'number') {
+          const u = migrated.unlockedSlots
+          migrated.unlockedPanelSlots = migrated.unlockedPanelSlots ?? u
+          migrated.unlockedBatterySlots = migrated.unlockedBatterySlots ?? u
+          delete migrated.unlockedSlots
+        }
+
         return migrated
       },
       merge: (persistedState, currentState) =>

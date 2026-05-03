@@ -22,7 +22,7 @@ function PowerCenterScreen() {
   const activePanels = useGameStore((s) => s.activePanels)
   const unlockedResearches = useGameStore((s) => s.unlockedResearches)
   const maxSlots = useGameStore((s) => s.maxSlots)
-  const unlockedSlots = useGameStore((s) => s.unlockedSlots)
+  const unlockedPanelSlots = useGameStore((s) => s.unlockedPanelSlots)
   const buyItem = useGameStore((s) => s.buyItem)
   const cleanPanel = useGameStore((s) => s.cleanPanel)
   const unlockHubSlot = useGameStore((s) => s.unlockHubSlot)
@@ -96,7 +96,7 @@ function PowerCenterScreen() {
   }
 
   const openEmptySlotPurchaseModal = (slotIndex) => {
-    if (slotIndex >= unlockedSlots || activePanels.length >= unlockedSlots) return
+    if (slotIndex >= unlockedPanelSlots || activePanels.length >= unlockedPanelSlots) return
 
     const firstAvailable = equipmentOptions[0]
     setEmptySlotModalIndex(slotIndex)
@@ -125,7 +125,7 @@ function PowerCenterScreen() {
       sfxError()
       return
     }
-    const result = unlockHubSlot()
+    const result = unlockHubSlot('panel')
     if (!result.ok) {
       setUnlockError(result.reason || 'Yuva açılamadı.')
       return
@@ -136,7 +136,7 @@ function PowerCenterScreen() {
   const handlePanelPurchase = () => {
     if (emptySlotModalIndex === null || !selectedEquipment) return
 
-    if (activePanels.length >= unlockedSlots) {
+    if (activePanels.length >= unlockedPanelSlots) {
       setPurchaseError('Önce yeni yuva açmalısın.')
       return
     }
@@ -192,7 +192,7 @@ function PowerCenterScreen() {
             <div className="flex items-center justify-between mb-3">
               <h1 className="font-black text-2xl">Güç Merkezi</h1>
               <span className="rounded-full border-2 border-slate-900 bg-breeze px-3 py-1 text-xs font-black">
-                {filledSlots}/{unlockedSlots} Dolu - Toplam {maxSlots} Yuva
+                {filledSlots}/{unlockedPanelSlots} Dolu - Toplam {maxSlots} Yuva
               </span>
             </div>
             <PowerHub
@@ -200,7 +200,7 @@ function PowerCenterScreen() {
               onCleanPanel={handleCleanPanel}
               onEmptySlotClick={openEmptySlotPurchaseModal}
               onLockedSlotClick={openUnlockModal}
-              unlockedSlots={unlockedSlots}
+              unlockedSlots={unlockedPanelSlots}
               inventoryItems={panelInventory}
             />
           </article>

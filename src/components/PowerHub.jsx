@@ -13,7 +13,7 @@ function PowerHub({
 }) {
   const storeInventory = useGameStore((s) => s.inventory)
   const maxSlots = useGameStore((s) => s.maxSlots)
-  const storeUnlockedSlots = useGameStore((s) => s.unlockedSlots)
+  const storeUnlockedSlots = useGameStore((s) => s.unlockedPanelSlots)
   const unlockedSlots = unlockedSlotsProp ?? storeUnlockedSlots
   const inventory = inventoryItems ?? storeInventory
 
