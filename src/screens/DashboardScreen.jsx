@@ -22,7 +22,7 @@ function clampSellPct(p) {
 function forecastWeatherTurkish(cloudCover, gtiUsed) {
   const cloud = typeof cloudCover === 'number' ? cloudCover : 50
   const gti = typeof gtiUsed === 'number' ? gtiUsed : 0
-  if (gti < 5) return 'Gece · düşük ışınım'
+  if (gti < 5) return 'Gece'
   if (cloud >= 88) return 'Kapalı gökyüzü'
   if (cloud >= 65) return 'Çok bulutlu'
   if (cloud >= 40) return 'Bulutlu'
