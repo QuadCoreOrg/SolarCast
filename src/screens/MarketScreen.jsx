@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
-import { BatteryCharging, Compass, FlaskConical, Lock, ShoppingCart, SunMedium } from 'lucide-react'
+import { Compass, FlaskConical, Lock, ShoppingCart } from 'lucide-react'
 import Modal from '../components/Modal'
+import PanelThumbnail from '../components/PanelThumbnail'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import {
@@ -55,6 +56,7 @@ function MarketScreen() {
             `${def.area} m² panel yüzeyi; tepe güneşte yaklaşık +${outputKwhRounded.toLocaleString('tr-TR')} kWh.` +
             ' Kirliyken üretim %75 düşer.',
           displayOutput: `${outputKwhRounded.toLocaleString('tr-TR')} kWh (tepe güneş)`,
+          imageSrc: def.imageSrc,
         }
       }),
     [level, unlockedResearches],
@@ -76,6 +78,7 @@ function MarketScreen() {
           reqLevelLabel: locks.levelLabel,
           description:
             `${def.capacity.toLocaleString('tr-TR')} kWh depolama. Birden fazla batarya kapasiteniz toplanır.`,
+          imageSrc: def.imageSrc,
         }
       }),
     [level, unlockedResearches],
@@ -169,8 +172,8 @@ function MarketScreen() {
                     <div className="absolute inset-0 bg-shade/25 pointer-events-none" />
                   )}
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center">
-                      <SunMedium className="w-6 h-6" strokeWidth={2.25} />
+                    <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center overflow-hidden p-0.5">
+                      <PanelThumbnail src={product.imageSrc} alt={product.name} className="w-full h-full" />
                     </div>
                     {product.isLocked && (
                       <span className="inline-flex items-center gap-1 rounded-full border-3 border-slate-900 bg-blossom px-2.5 py-1 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)]">
@@ -281,8 +284,8 @@ function MarketScreen() {
                     <div className="absolute inset-0 bg-shade/25 pointer-events-none" />
                   )}
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center">
-                      <BatteryCharging className="w-6 h-6" strokeWidth={2.25} />
+                    <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center overflow-hidden p-0.5">
+                      <PanelThumbnail src={product.imageSrc} alt={product.name} className="w-full h-full" />
                     </div>
                     {product.isLocked && (
                       <span className="inline-flex items-center gap-1 rounded-full border-3 border-slate-900 bg-blossom px-2.5 py-1 text-xs font-black shadow-[2px_2px_0px_0px_var(--shade)]">
@@ -328,6 +331,16 @@ function MarketScreen() {
       >
         {selectedProduct && (
           <div className="space-y-3">
+            {(selectedProduct.category === 'panel' || selectedProduct.category === 'battery') &&
+              selectedProduct.imageSrc && (
+              <div className="mx-auto w-full max-w-[200px] rounded-2xl border-4 border-slate-900 bg-background p-2 shadow-[3px_3px_0px_0px_var(--shade)]">
+                <PanelThumbnail
+                  src={selectedProduct.imageSrc}
+                  alt={selectedProduct.name}
+                  className="w-full h-28"
+                />
+              </div>
+            )}
             <p className="font-bold text-sm text-shade-2">{selectedProduct.description}</p>
             <div className="rounded-xl border-3 border-slate-900 bg-background p-3">
               <p className="font-black text-sm text-shade-2">Kategori</p>

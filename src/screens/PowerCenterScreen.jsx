@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
-import { ShoppingCart, SunMedium } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 import { HUB_SLOT_UNLOCK_COST, PANELS, PANEL_CLEAN_COST, PANEL_DEF_BY_TYPE_ID } from '../constants/gameData'
 import {
   getPanelGameKeyFromTypeId,
@@ -12,6 +12,7 @@ import { sfxError } from '../utils/soundManager'
 import Header from '../components/Header'
 import Modal from '../components/Modal'
 import PowerHub from '../components/PowerHub'
+import PanelThumbnail from '../components/PanelThumbnail'
 import TabBar from '../components/TabBar'
 
 function PowerCenterScreen() {
@@ -53,7 +54,7 @@ function PowerCenterScreen() {
             price: `${panel.price.toLocaleString('tr-TR')} Coin`,
             rawPrice: panel.price,
             bg: 'bg-sunlit',
-            Icon: SunMedium,
+            imageSrc: panel.imageSrc,
             outputPerSec: panel.area,
             isLocked,
           }
@@ -79,6 +80,7 @@ function PowerCenterScreen() {
           daysSinceCleaned,
           dirtyDaysLimit,
           needsCleaning: dirtyDaysLimit > 0 && daysSinceCleaned >= dirtyDaysLimit,
+          imageSrc: def?.imageSrc,
         }
       }),
     [activePanels],
@@ -216,6 +218,11 @@ function PowerCenterScreen() {
         {selectedItem && (
           <div className="space-y-3 font-bold text-shade">
             <div className="rounded-2xl border-3 border-slate-900 bg-background p-3 shadow-[inset_0_0_0_1px_rgba(42,42,51,0.06)]">
+              {selectedItem.imageSrc && (
+                <div className="mb-3 mx-auto max-w-[180px] rounded-xl border-3 border-slate-900 bg-breeze/30 p-2">
+                  <PanelThumbnail src={selectedItem.imageSrc} alt={selectedItem.name} className="w-full h-24" />
+                </div>
+              )}
               <p className="text-[11px] font-black uppercase tracking-wide text-shade-soft">Ekipman detayı</p>
               <p className="text-sm text-shade-2 mt-2">Tip: Güneş paneli</p>
               <p className="text-sm mt-1">
@@ -274,7 +281,6 @@ function PowerCenterScreen() {
           <div className="grid grid-cols-1 gap-2">
             {equipmentOptions.map((option) => {
               const isSelected = selectedEquipmentKey === option.key
-              const Icon = option.Icon
               return (
                 <motion.button
                   key={option.key}
@@ -287,8 +293,8 @@ function PowerCenterScreen() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="w-11 h-11 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center">
-                      <Icon className="w-5 h-5" strokeWidth={2.25} />
+                    <div className="w-11 h-11 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center overflow-hidden p-0.5">
+                      <PanelThumbnail src={option.imageSrc} alt={option.name} className="w-full h-full" />
                     </div>
                     <span className="rounded-full border-3 border-slate-900 bg-background px-2 py-0.5 text-[11px] font-black">
                       {option.price}
@@ -325,7 +331,7 @@ function PowerCenterScreen() {
               className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep px-4 py-2 font-black shadow-[3px_3px_0px_0px_var(--shade)] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0"
             >
               <ShoppingCart className="w-4 h-4" />
-              Seçili Paneli Satın Al
+              Satın Al
             </button>
             <button
               type="button"

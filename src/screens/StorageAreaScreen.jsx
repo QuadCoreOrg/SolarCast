@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { BatteryCharging, CirclePlus, ShoppingCart } from 'lucide-react'
+import PanelThumbnail from '../components/PanelThumbnail'
 import { BATTERIES, BATTERY_DEF_BY_TYPE_ID, HUB_SLOT_UNLOCK_COST } from '../constants/gameData'
 import {
   getBatteryGameKeyFromTypeId,
@@ -75,6 +76,7 @@ function StorageAreaScreen() {
         storedKwh: slice?.storedKwh ?? 0,
         orderIndex: slice?.orderIndex ?? idx + 1,
         isFull: Boolean(slice?.isFull && cap > 0),
+        imageSrc: def?.imageSrc,
       }
     })
   }, [activeBatteries, currentEnergy])
@@ -102,6 +104,7 @@ function StorageAreaScreen() {
         sub: `Depolama ${def.capacity} kWh`,
         price: `${def.price.toLocaleString('tr-TR')} Coin`,
         rawPrice: def.price,
+        imageSrc: def.imageSrc,
       })
     }
     return items
@@ -267,14 +270,18 @@ function StorageAreaScreen() {
                         >
                           Depo {item.orderIndex}
                         </span>
-                        <div className="mx-auto mb-3 mt-6 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background">
-                          <div
-                            className={`w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center ${
-                              full ? 'bg-rose-200' : 'bg-sprout'
-                            }`}
-                          >
-                            <BatteryCharging className="w-6 h-6" strokeWidth={2.25} />
-                          </div>
+                        <div className="mx-auto mb-3 mt-6 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background overflow-hidden p-1">
+                          {item.imageSrc ? (
+                            <PanelThumbnail src={item.imageSrc} alt={item.name} className="w-full h-full" />
+                          ) : (
+                            <div
+                              className={`w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center ${
+                                full ? 'bg-rose-200' : 'bg-sprout'
+                              }`}
+                            >
+                              <BatteryCharging className="w-6 h-6" strokeWidth={2.25} />
+                            </div>
+                          )}
                         </div>
                         <p className="font-black text-lg leading-tight">{item.name}</p>
                         <p className="font-black text-sm text-shade-2 mt-1">
@@ -323,6 +330,11 @@ function StorageAreaScreen() {
         {selectedBattery && (
           <div className="space-y-3 font-bold text-shade">
             <div className="rounded-2xl border-3 border-slate-900 bg-background p-3 shadow-[inset_0_0_0_1px_rgba(42,42,51,0.06)]">
+              {selectedBattery.imageSrc && (
+                <div className="mb-3 mx-auto max-w-[180px] rounded-xl border-3 border-slate-900 bg-breeze/30 p-2">
+                  <PanelThumbnail src={selectedBattery.imageSrc} alt={selectedBattery.name} className="w-full h-24" />
+                </div>
+              )}
               <p className="text-[11px] font-black uppercase tracking-wide text-shade-soft">Depo detayı</p>
               <p className="text-sm text-shade-2 mt-2">Sıra: Depo {selectedBattery.orderIndex}</p>
               <p className="text-sm mt-1">Nominal kapasite: {selectedBattery.capacityKwh} kWh</p>
@@ -434,8 +446,8 @@ function StorageAreaScreen() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="w-11 h-11 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center">
-                      <BatteryCharging className="w-5 h-5" strokeWidth={2.25} />
+                    <div className="w-11 h-11 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center overflow-hidden p-0.5">
+                      <PanelThumbnail src={option.imageSrc} alt={option.name} className="w-full h-full" />
                     </div>
                     <span className="rounded-full border-3 border-slate-900 bg-background px-2 py-0.5 text-[11px] font-black">
                       {option.price}

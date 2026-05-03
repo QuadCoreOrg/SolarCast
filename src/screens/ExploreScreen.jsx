@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { BatteryCharging, Lock, SunMedium } from 'lucide-react'
+import PanelThumbnail from '../components/PanelThumbnail'
 import { RESEARCHES_BY_KEY } from '../constants/gameData'
 import Header from '../components/Header'
 import TabBar from '../components/TabBar'
@@ -27,7 +28,8 @@ function ExploreScreen() {
     const meetsLevel = level >= requiredLevel
     const isLocked = !isUnlocked && !meetsLevel
     const canAfford = coins >= price
-    const Icon = type === 'panel' ? SunMedium : BatteryCharging
+    const previewSrc = upgrade.previewImageSrc ?? null
+    const FallbackIcon = type === 'panel' ? SunMedium : BatteryCharging
 
     const tryPurchase = () => {
       setLabErrorForKey(null)
@@ -50,8 +52,12 @@ function ExploreScreen() {
         {isLocked && <div className="absolute inset-0 bg-shade/25 pointer-events-none" />}
 
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center shrink-0">
-            <Icon className="w-6 h-6" strokeWidth={2.25} />
+          <div className="w-12 h-12 rounded-xl border-4 border-slate-900 bg-background flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+            {previewSrc ? (
+              <PanelThumbnail src={previewSrc} alt={label} className="h-full w-full" />
+            ) : (
+              <FallbackIcon className="w-6 h-6" strokeWidth={2.25} />
+            )}
           </div>
           {isUnlocked ? (
             <span className="rounded-full border-2 border-slate-900 bg-sprout-deep px-2.5 py-1 text-xs font-black">

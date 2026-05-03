@@ -1,4 +1,5 @@
 import { TrendingUp } from 'lucide-react'
+import PanelThumbnail from './PanelThumbnail'
 import { sfxError } from '../utils/soundManager'
 
 function targetLine(variant, targetDef) {
@@ -24,12 +25,17 @@ export default function EquipmentUpgradeSection({ variant, projection, coins, on
   const affordable = coins >= projection.coinCost
   const canActivate = projection.canPurchase && affordable
   const subtitle = targetLine(variant, projection.targetDef)
+  const targetEquipmentSrc = projection.targetDef?.imageSrc ?? null
 
   return (
     <div className="rounded-2xl border-3 border-slate-900 bg-blossom/30 p-3 shadow-[2px_2px_0px_0px_var(--shade)]">
       <div className="flex items-start gap-2">
-        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-3 border-slate-900 bg-background">
-          <TrendingUp className="h-5 w-5 text-shade" strokeWidth={2.25} />
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-3 border-slate-900 bg-background overflow-hidden p-0.5">
+          {targetEquipmentSrc ? (
+            <PanelThumbnail src={targetEquipmentSrc} alt={projection.targetDef?.name ?? ''} className="h-full w-full" />
+          ) : (
+            <TrendingUp className="h-5 w-5 text-shade" strokeWidth={2.25} />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-black uppercase tracking-wide text-shade-soft">Bir üst modele yükselt</p>

@@ -124,6 +124,9 @@ const createInitialGameState = () => ({
   dailyGoal: 80,
   currentProgress: 0,
   research: createInitialResearch(),
+
+  /** `null` = GAME_CONFIG.gameLoop.msPerSimulatedHour; localStorage’a yazılmaz (sadece debug). */
+  debugMsPerSimHourOverride: null,
 })
 
 const touch = () => ({ lastUpdatedAt: new Date().toISOString() })
@@ -734,6 +737,22 @@ const useGameStore = create(
         if (!storeKey) return { ok: false, reason: 'Geçersiz araştırma' }
         return get().buyItem('research', storeKey)
       },
+
+      setDebugMsPerSimHourOverride: (ms) =>
+        set(() => {
+          if (ms == null) {
+            return { debugMsPerSimHourOverride: null, ...touch() }
+          }
+          const { debugMsPerSimHourMin, debugMsPerSimHourMax } = GAME_CONFIG.gameLoop
+          const lo = typeof debugMsPerSimHourMin === 'number' ? debugMsPerSimHourMin : 200
+          const hi = typeof debugMsPerSimHourMax === 'number' ? debugMsPerSimHourMax : 12000
+          const n = Math.round(Number(ms))
+          if (!Number.isFinite(n)) return {}
+          return {
+            debugMsPerSimHourOverride: Math.min(hi, Math.max(lo, n)),
+            ...touch(),
+          }
+        }),
 
       resetGame: () => set(createInitialGameState()),
     }),

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { BatteryCharging, CirclePlus, Lock, SunMedium } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
+import PanelThumbnail from './PanelThumbnail'
 
 function PowerHub({
   openUpgradeModal,
@@ -56,6 +57,7 @@ function PowerHub({
             const statusText = isPanel ? `+${panelOutput} kWh` : `%${item.chargePct ?? 0} Full`
             const Icon = isPanel ? SunMedium : BatteryCharging
             const iconBoxClass = isPanel ? 'bg-breeze' : 'bg-sprout'
+            const equipmentImageSrc = item.imageSrc ?? null
             const panelCardTone = item.needsCleaning
               ? 'bg-rose-100 border-rose-700'
               : 'bg-background border-slate-900'
@@ -87,10 +89,14 @@ function PowerHub({
                     </button>
                   </div>
                 )}
-                <div className="mx-auto mb-3 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background">
-                  <div className={`w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center ${iconBoxClass}`}>
-                    <Icon className="w-6 h-6" strokeWidth={2.25} />
-                  </div>
+                <div className="mx-auto mb-3 w-16 h-16 rounded-2xl border-4 border-slate-900 flex items-center justify-center bg-background overflow-hidden p-1">
+                  {equipmentImageSrc ? (
+                    <PanelThumbnail src={equipmentImageSrc} alt={item.name} className="w-full h-full" />
+                  ) : (
+                    <div className={`w-11 h-11 rounded-xl border-3 border-slate-900 flex items-center justify-center ${iconBoxClass}`}>
+                      <Icon className="w-6 h-6" strokeWidth={2.25} />
+                    </div>
+                  )}
                 </div>
                 <p className="font-black text-lg leading-tight">{item.name}</p>
                 <p className="font-black text-sm text-shade-2 mt-1">{statusText}</p>

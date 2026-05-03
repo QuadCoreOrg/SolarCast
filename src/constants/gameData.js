@@ -1,5 +1,5 @@
-/** @typedef {{ id: string, name: string, area: number, efficiency: number, price: number, dirtyDaysLimit: number, reqLevel?: number, reqResearch?: string }} PanelDef */
-/** @typedef {{ id: string, name: string, capacity: number, price: number, reqLevel?: number, reqResearch?: string }} BatteryDef */
+/** @typedef {{ id: string, name: string, area: number, efficiency: number, price: number, dirtyDaysLimit: number, imageSrc: string, reqLevel?: number, reqResearch?: string }} PanelDef */
+/** @typedef {{ id: string, name: string, capacity: number, price: number, imageSrc: string, reqLevel?: number, reqResearch?: string }} BatteryDef */
 /** @typedef {{ id: string, name: string, price: number, reqLevel?: number }} ResearchDef */
 
 export const PANELS = {
@@ -10,6 +10,7 @@ export const PANELS = {
     efficiency: 0.2,
     price: 1200,
     dirtyDaysLimit: 7,
+    imageSrc: '/assets/solar_panel_1.png',
   },
   MEGA: {
     id: 'p_mega',
@@ -20,6 +21,7 @@ export const PANELS = {
     dirtyDaysLimit: 14,
     reqLevel: 3,
     reqResearch: 'r_glass',
+    imageSrc: '/assets/solar_panel_2.png',
   },
   ULTRA: {
     id: 'p_ultra',
@@ -30,6 +32,7 @@ export const PANELS = {
     dirtyDaysLimit: 30,
     reqLevel: 5,
     reqResearch: 'r_wafer',
+    imageSrc: '/assets/solar_panel_3.png',
   },
 }
 
@@ -39,6 +42,7 @@ export const BATTERIES = {
     name: 'Temel Depolama',
     capacity: 200,
     price: 800,
+    imageSrc: '/assets/battery_1.png',
   },
   HIGH: {
     id: 'b_high',
@@ -47,6 +51,7 @@ export const BATTERIES = {
     price: 2200,
     reqLevel: 3,
     reqResearch: 'r_cobalt',
+    imageSrc: '/assets/battery_2.png',
   },
   MEGA: {
     id: 'b_mega',
@@ -55,6 +60,7 @@ export const BATTERIES = {
     price: 4100,
     reqLevel: 5,
     reqResearch: 'r_polymer',
+    imageSrc: '/assets/battery_3.png',
   },
 }
 
