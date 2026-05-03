@@ -54,7 +54,7 @@ export async function calculateGameDayProduction(cityName, options = {}) {
   let month = String(baseDate.getMonth() + 1).padStart(2, '0')
   let day = String(baseDate.getDate()).padStart(2, '0')
   if (month === '02' && day === '29') day = '28'
-  const targetDate = `2024-${month}-${day}`
+  const targetDate = `2025-${month}-${day}`
 
   const params = new URLSearchParams({
     latitude: String(lat),

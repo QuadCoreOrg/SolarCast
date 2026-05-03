@@ -504,9 +504,6 @@ const useGameStore = create(
           state.level,
           XP_REWARDS.hubSlotUnlock,
         )
-        const nextCoins = state.coins - HUB_SLOT_UNLOCK_COST
-        const nextSlots = state.unlockedSlots + 1
-        const after = { ...state, coins: nextCoins, unlockedSlots: nextSlots, experience, level }
         set({
           coins: state.coins - HUB_SLOT_UNLOCK_COST,
           unlockedPanelSlots: state.unlockedPanelSlots + 1,
@@ -536,9 +533,18 @@ const useGameStore = create(
           state.level,
           XP_REWARDS.hubSlotUnlock,
         )
+        const nextCoins = state.coins - HUB_SLOT_UNLOCK_COST
+        const nextBatterySlots = state.unlockedBatterySlots + 1
+        const after = {
+          ...state,
+          coins: nextCoins,
+          unlockedBatterySlots: nextBatterySlots,
+          experience,
+          level,
+        }
         set({
-          coins: state.coins - HUB_SLOT_UNLOCK_COST,
-          unlockedBatterySlots: state.unlockedBatterySlots + 1,
+          coins: nextCoins,
+          unlockedBatterySlots: nextBatterySlots,
           experience,
           level,
           ...dailyQuestPatchStorageExpanded(state, after),
@@ -948,6 +954,12 @@ const useGameStore = create(
           typeof persistedState.unlockedSlots === 'number'
             ? persistedState.unlockedSlots
             : GAME_CONFIG.powerHub.initialUnlockedSlots
+        const geminiCreditsMigrated =
+          typeof persistedState.geminiCredits === 'number' &&
+          Number.isFinite(persistedState.geminiCredits) &&
+          persistedState.geminiCredits >= 0
+            ? Math.floor(persistedState.geminiCredits)
+            : 300
         const migrated = {
           ...persistedState,
           coins: persistedState.coins ?? persistedState.credits ?? 2000,
