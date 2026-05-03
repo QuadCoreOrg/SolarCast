@@ -17,11 +17,16 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
   const hour = useGameStore((s) => s.hour)
   const isDayActive = useGameStore((s) => s.isDayActive)
   const coinsFromStore = useGameStore((s) => s.coins)
+  const geminiCreditsFromStore = useGameStore((s) => s.geminiCredits)
   const levelFromStore = useGameStore((s) => s.level)
   const experienceFromStore = useGameStore((s) => s.experience)
 
   const coins = coinsProp ?? creditsLegacy ?? coinsFromStore
   const level = levelProp ?? levelFromStore
+  const geminiCredits =
+    typeof geminiCreditsFromStore === 'number' && Number.isFinite(geminiCreditsFromStore)
+      ? geminiCreditsFromStore
+      : 0
   const experience = experienceFromStore
   const calendarLabel = formatGameCalendarDayMonthTr(day, startedAt)
 
@@ -116,6 +121,13 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
               <span aria-hidden="true">🪙</span>
               <span className="font-black text-sm tabular-nums">
                 {coins.toLocaleString('tr-TR')} Coin
+              </span>
+              <span
+                aria-hidden="true"
+                className="h-7 w-px bg-shade/40 shrink-0"
+              />
+              <span className="font-black text-xs tabular-nums text-shade whitespace-nowrap" title="CastAI kredisi">
+                ✦ {geminiCredits.toLocaleString('tr-TR')}
               </span>
             </button>
           ) : (

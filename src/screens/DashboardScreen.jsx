@@ -6,9 +6,12 @@ import Header from '../components/Header'
 import TabBar from '../components/TabBar'
 import Modal from '../components/Modal'
 import PercentSellSelector from '../components/PercentSellSelector'
+import CastAiEnergyModal from '../components/CastAiEnergyModal'
+import DailyQuestsPanel from '../components/DailyQuestsPanel'
 import AnimatedNumber, { AnimatedPctFill } from '../components/AnimatedMetric'
 import { getCitySolarStats } from '../utils/citySolarStats'
 import { getSpotEnergyPriceCoinPerKwh, getSpotEnergyTrendLabel } from '../utils/spotEnergyPrice'
+import { CAST_AI_REQUEST_CREDITS } from '../constants/castAi'
 
 function clampSellPct(p) {
   const snapped = Math.round(Number(p) / 5) * 5
@@ -79,6 +82,9 @@ function DashboardScreen() {
   const selectedCity = useGameStore((s) => s.selectedCity)
   const gameLoopMode = useGameStore((s) => s.gameLoopMode)
   const setGameLoopMode = useGameStore((s) => s.setGameLoopMode)
+  const geminiCredits = useGameStore((s) => s.geminiCredits)
+  const spendGeminiCredits = useGameStore((s) => s.spendGeminiCredits)
+  const hasStartedGame = useGameStore((s) => s.hasStartedGame)
   const sellSpotEnergy = useGameStore((s) => s.sellSpotEnergy)
   const day = useGameStore((s) => s.day)
   const hour = useGameStore((s) => s.hour)
@@ -175,10 +181,13 @@ function DashboardScreen() {
   const liveTrend = getSpotEnergyTrendLabel({ day, hour, cityName })
 
   const [sellModalOpen, setSellModalOpen] = useState(false)
+  const [castAiModalOpen, setCastAiModalOpen] = useState(false)
+  const [castAiNonce, setCastAiNonce] = useState(0)
   const [sellPct, setSellPct] = useState(100)
   const [frozenSpotCoinPerKwh, setFrozenSpotCoinPerKwh] = useState(null)
   const [sellError, setSellError] = useState('')
   const loopModeBeforeSellRef = useRef(null)
+  const loopModeBeforeCastAiRef = useRef(null)
 
   const closeSellModal = useCallback(() => {
     setSellModalOpen(false)
@@ -191,35 +200,67 @@ function DashboardScreen() {
     }
   }, [setGameLoopMode])
 
-  const openSellModal = useCallback(() => {
+  const openSellModal = useCallback((options = {}) => {
     if (!hasBatteryStorage || currentEnergy <= 0) return
+    const pctOverride =
+      typeof options.sellPct === 'number' && Number.isFinite(options.sellPct) ? options.sellPct : undefined
     setSellError('')
     const spot = getSpotEnergyPriceCoinPerKwh({
       day,
       hour,
       cityName,
     })
-    loopModeBeforeSellRef.current = gameLoopMode
+    loopModeBeforeSellRef.current = useGameStore.getState().gameLoopMode
     setFrozenSpotCoinPerKwh(spot)
     setGameLoopMode('pause')
-    setSellPct((prev) => clampSellPct(prev))
+    setSellPct((prev) =>
+      pctOverride != null ? clampSellPct(pctOverride) : clampSellPct(prev),
+    )
     setSellModalOpen(true)
-  }, [
-    cityName,
-    currentEnergy,
-    day,
-    gameLoopMode,
-    hasBatteryStorage,
-    hour,
-    setGameLoopMode,
-  ])
+  }, [cityName, currentEnergy, day, hasBatteryStorage, hour, setGameLoopMode, setSellPct])
+
+  const closeCastAiModal = useCallback(() => {
+    setCastAiModalOpen(false)
+    const restore = loopModeBeforeCastAiRef.current
+    loopModeBeforeCastAiRef.current = null
+    if (restore === 'pause' || restore === 'play' || restore === 'fast') {
+      setGameLoopMode(restore)
+    }
+  }, [setGameLoopMode])
+
+  const openCastAiModal = useCallback(() => {
+    if (!hasStartedGame) return
+    loopModeBeforeCastAiRef.current = useGameStore.getState().gameLoopMode
+    setGameLoopMode('pause')
+    setCastAiNonce((n) => n + 1)
+    setCastAiModalOpen(true)
+  }, [hasStartedGame, setGameLoopMode])
+
+  const navigateSellFromCastAi = useCallback(
+    (suggestedPct) => {
+      closeCastAiModal()
+      window.requestAnimationFrame(() => {
+        if (typeof suggestedPct === 'number' && Number.isFinite(suggestedPct)) {
+          openSellModal({ sellPct: suggestedPct })
+        } else {
+          openSellModal()
+        }
+      })
+    },
+    [closeCastAiModal, openSellModal],
+  )
 
   useEffect(
     () => () => {
-      const restore = loopModeBeforeSellRef.current
+      const restoreSell = loopModeBeforeSellRef.current
       loopModeBeforeSellRef.current = null
-      if (restore === 'pause' || restore === 'play' || restore === 'fast') {
-        setGameLoopMode(restore)
+      if (restoreSell === 'pause' || restoreSell === 'play' || restoreSell === 'fast') {
+        setGameLoopMode(restoreSell)
+      }
+      const restoreAi = loopModeBeforeCastAiRef.current
+      loopModeBeforeCastAiRef.current = null
+      if (restoreAi === 'pause' || restoreAi === 'play' || restoreAi === 'fast') {
+        setGameLoopMode(restoreAi)
       }
     },
     [setGameLoopMode],
@@ -246,6 +287,41 @@ function DashboardScreen() {
   }
 
   const canOpenSellModal = hasBatteryStorage && currentEnergy > 0
+
+  const castAiSnapshot = {
+    lang: 'tr',
+    scenario: 'solarcast_energy_sale_advice_v1',
+    cityName,
+    gameDay: day,
+    simulatedHourLocal: hour,
+    simulationRunning: isDayActive,
+    inventory: {
+      hasBatteryStorage,
+      batteryCount: activeBatteries.length,
+      panelCount: activePanels.length,
+      batteryCapacityKwh: Math.round(batteryCapacity * 100) / 100,
+      batteryFillPct,
+      storedEnergyKwh: Math.round(currentEnergy * 1000) / 1000,
+      dirtyPanelCount,
+    },
+    economics: {
+      spotCoinPerKwhNow: Math.round(liveSpotCoinPerKwh * 100) / 100,
+      spotCoinPerKwhNextSimHour: Math.round(
+        getSpotEnergyPriceCoinPerKwh({
+          day,
+          hour: hour + 1,
+          cityName,
+        }) * 100,
+      ) / 100,
+      spotTrendHintVsPrevHour: liveTrend,
+    },
+    physicsHint: {
+      forecastSlotAvailable24h: hasFullForecast,
+      currentHourGti: typeof hourForecast?.gti_used === 'number' ? hourForecast.gti_used : null,
+      weatherPhraseTr: cityWeatherLabel,
+      tempApproxC: cityTemperature,
+    },
+  }
 
   const dashboardData = {
     inventory: {
@@ -437,8 +513,8 @@ function DashboardScreen() {
             </article>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
-            <article className="xl:col-span-2 rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 xl:items-start">
+            <article className="xl:col-span-5 rounded-2xl border-4 border-slate-900 bg-background p-4 shadow-[4px_4px_0px_0px_var(--shade)] min-w-0">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="font-black text-lg">{dashboardData.city.name} - Şehir Bilgisi</h2>
@@ -486,7 +562,11 @@ function DashboardScreen() {
               </div>
             </article>
 
-            <div className="space-y-3">
+            <div className="xl:col-span-4 min-w-0">
+              <DailyQuestsPanel />
+            </div>
+
+            <div className="space-y-3 xl:col-span-3 min-w-0">
               <article className="rounded-2xl border-4 border-slate-900 bg-sunlit-deep p-4 shadow-[4px_4px_0px_0px_var(--shade)]">
                 <h2 className="font-black text-base mb-2">Anlık enerji piyasası</h2>
                 <p className="text-[11px] font-bold text-shade-2 mb-1">
@@ -504,10 +584,25 @@ function DashboardScreen() {
                 </p>
                 <p className="text-sm font-black mt-1">Trend: {dashboardData.market.trend}</p>
                 <p className="text-xs font-black mt-1">Volatilite: {dashboardData.market.volatility}</p>
+                <div className="mt-3 space-y-2">
+                  <p className="text-[10px] font-bold text-shade-2 leading-snug">
+                    CastAI, satış zamanı için sana bir fikir verir ({CAST_AI_REQUEST_CREDITS} kredi / soru). Sadece düğmeye
+                    bastığında çalışır; cevap gelene kadar gün bekler. Kredin:{' '}
+                    <span className="font-black tabular-nums">{geminiCredits.toLocaleString('tr-TR')}</span>.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!hasStartedGame}
+                    onClick={openCastAiModal}
+                    className="w-full rounded-2xl border-4 border-slate-900 bg-blossom/80 px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-blossom disabled:opacity-45 disabled:pointer-events-none"
+                  >
+                    CastAI’den sor ({CAST_AI_REQUEST_CREDITS} kredi)
+                  </button>
+                </div>
                 <button
                   type="button"
                   disabled={!canOpenSellModal}
-                  onClick={openSellModal}
+                  onClick={() => openSellModal()}
                   className="mt-3 w-full rounded-2xl border-4 border-slate-900 bg-background px-3 py-2 text-sm font-black shadow-[4px_4px_0px_0px_var(--shade)] transition-colors duration-150 active:translate-y-1 active:shadow-none hover:bg-sunlit/70 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[4px_4px_0px_0px_var(--shade)]"
                 >
                   Enerji sat
@@ -539,6 +634,17 @@ function DashboardScreen() {
           </div>
         </section>
       </main>
+
+      <CastAiEnergyModal
+        key={castAiNonce}
+        isOpen={castAiModalOpen}
+        onClose={closeCastAiModal}
+        gameSnapshot={castAiSnapshot}
+        geminiCredits={geminiCredits}
+        spendGeminiCredits={spendGeminiCredits}
+        canNavigateToSellFlow={canOpenSellModal}
+        onNavigateToSell={navigateSellFromCastAi}
+      />
 
       <Modal
         isOpen={sellModalOpen}
@@ -581,6 +687,10 @@ function DashboardScreen() {
             </div>
 
             <PercentSellSelector valuePct={sellPct} onChangePct={setSellPct} />
+
+            <div className="rounded-2xl border-3 border-slate-900 bg-background/90 p-2 text-[10px] font-bold text-shade-2 leading-snug">
+              İstersen gösterge panelinden önce CastAI’ye sor; sonra burada ne kadar satacağına yüzdeyle karar ver.
+            </div>
 
             <div className="rounded-2xl border-3 border-slate-900 bg-sprout/50 p-3 space-y-1">
               <p className="text-xs font-black text-shade-2">Özet</p>

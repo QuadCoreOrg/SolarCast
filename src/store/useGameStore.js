@@ -31,9 +31,66 @@ import {
 import { calculateGameDayProduction, getGameSimulationDate } from '../services/production'
 import { applyExperienceGain } from '../utils/progression'
 import { sfxBuying, sfxError } from '../utils/soundManager'
+import {
+  allQuestsCompleted,
+  generateDailyQuestBatch,
+  getLocalDateKey,
+  reduceDailyQuestsOnEvent,
+} from '../utils/dailyQuests'
 
 const GAME_STORAGE_KEY = 'solarcast_game_store'
-const GAME_STORE_VERSION = 5
+const GAME_STORE_VERSION = 7
+
+/**
+ * Günlük görev ilerlemesi (takvim günü değiştiyse yeni set açılır, sonra olay uygulanır).
+ */
+function patchDailyQuestsFromEvent(prevState, event) {
+  const today = getLocalDateKey()
+  let dqDay = prevState.dailyQuestsDayKey
+  let quests = Array.isArray(prevState.dailyQuests) ? prevState.dailyQuests : []
+
+  if (dqDay !== today) {
+    dqDay = today
+    quests = generateDailyQuestBatch()
+  }
+
+  const { nextQuests, geminiToAdd, newlyCompletedTitles } = reduceDailyQuestsOnEvent(
+    quests,
+    event,
+  )
+  quests = nextQuests
+
+  let geminiCredits = (prevState.geminiCredits ?? 0) + geminiToAdd
+
+  if (allQuestsCompleted(quests)) {
+    quests = generateDailyQuestBatch()
+  }
+
+  const out = {
+    dailyQuestsDayKey: dqDay,
+    dailyQuests: quests,
+    geminiCredits,
+  }
+  if (newlyCompletedTitles.length > 0) {
+    out.dailyQuestRewardToast = {
+      credits: geminiToAdd,
+      titles: newlyCompletedTitles,
+      key: Date.now(),
+    }
+  }
+  return out
+}
+
+/**
+ * Görev için “genişletme”: hiç sahada batarya yokken yuva veya ilk batarya alımı sayılmaz
+ * (`stateAfterMerged` içinde güncellenmiş liste olsa bile, karar önceki `stateBeforeAction` ile).
+ */
+function dailyQuestPatchStorageExpanded(stateBeforeAction, stateAfterMerged) {
+  if (!stateBeforeAction.activeBatteries?.length) {
+    return {}
+  }
+  return patchDailyQuestsFromEvent(stateAfterMerged, { type: 'storage_expanded' })
+}
 
 const ONBOARDING_SCREENS = new Set(['how_to', 'city_select'])
 const VALID_SCREENS = new Set([
@@ -103,7 +160,16 @@ const createInitialGameState = () => ({
   experience: 0,
 
   coins: 2000,
+  /** CastAI (Gemini) danışmanlık ücretleri buradan düşülür — Coin’den bağımsız. */
+  geminiCredits: 300,
   currentEnergy: 0,
+
+  /** Yerel takvim günü (YYYY-MM-DD); günlük görev yenilemesi */
+  dailyQuestsDayKey: null,
+  /** Günlük görevler — tamamlanınca CastAI kredisi verilir; set bitince yenilenir */
+  dailyQuests: [],
+  /** Anlık görev ödülü kutlaması (persist edilmez) */
+  dailyQuestRewardToast: null,
 
   day: 1,
   hour: 0,
@@ -178,10 +244,22 @@ const normalizePersistedState = (state) => {
 
   const researchMerged = syncResearchFromUnlocks(unlockedResearches, researchBase)
 
+  const geminiCreditsSafe =
+    typeof state.geminiCredits === 'number' && Number.isFinite(state.geminiCredits) && state.geminiCredits >= 0
+      ? Math.floor(state.geminiCredits)
+      : 300
+
+  const dailyQuestsDayKey =
+    typeof state.dailyQuestsDayKey === 'string' ? state.dailyQuestsDayKey : null
+  const dailyQuests = Array.isArray(state.dailyQuests) ? state.dailyQuests : []
+
   return {
     ...state,
     currentScreen,
     coins,
+    geminiCredits: geminiCreditsSafe,
+    dailyQuestsDayKey,
+    dailyQuests,
     currentEnergy,
     day: typeof state.day === 'number' ? state.day : 1,
     hour: typeof state.hour === 'number' ? state.hour : 0,
@@ -213,6 +291,9 @@ const persistedStateKeys = [
   'experience',
 
   'coins',
+  'geminiCredits',
+  'dailyQuestsDayKey',
+  'dailyQuests',
   'currentEnergy',
   'day',
   'hour',
@@ -387,13 +468,19 @@ const useGameStore = create(
           XP_REWARDS.panelClean,
         )
 
-        set({
-          coins: state.coins - costCoins,
+        const nextCoins = state.coins - costCoins
+        const merged = {
+          coins: nextCoins,
           activePanels: nextPanels,
           experience,
           level,
+          ...patchDailyQuestsFromEvent(
+            { ...state, coins: nextCoins, activePanels: nextPanels, experience, level },
+            { type: 'panel_cleaned' },
+          ),
           ...touch(),
-        })
+        }
+        set(merged)
         sfxBuying()
       },
 
@@ -415,11 +502,15 @@ const useGameStore = create(
           state.level,
           XP_REWARDS.hubSlotUnlock,
         )
+        const nextCoins = state.coins - HUB_SLOT_UNLOCK_COST
+        const nextSlots = state.unlockedSlots + 1
+        const after = { ...state, coins: nextCoins, unlockedSlots: nextSlots, experience, level }
         set({
-          coins: state.coins - HUB_SLOT_UNLOCK_COST,
-          unlockedSlots: state.unlockedSlots + 1,
+          coins: nextCoins,
+          unlockedSlots: nextSlots,
           experience,
           level,
+          ...dailyQuestPatchStorageExpanded(state, after),
           ...touch(),
         })
         sfxBuying()
@@ -539,11 +630,21 @@ const useGameStore = create(
             xpAmt,
           )
 
-          set({
-            coins: state.coins - def.price,
-            activeBatteries: [...state.activeBatteries, newBatt],
+          const nextCoins = state.coins - def.price
+          const nextBatts = [...state.activeBatteries, newBatt]
+          const afterBat = {
+            ...state,
+            coins: nextCoins,
+            activeBatteries: nextBatts,
             experience,
             level,
+          }
+          set({
+            coins: nextCoins,
+            activeBatteries: nextBatts,
+            experience,
+            level,
+            ...dailyQuestPatchStorageExpanded(state, afterBat),
             ...touch(),
           })
           sfxBuying()
@@ -630,12 +731,17 @@ const useGameStore = create(
         )
         const nextEnergy = Math.min(state.currentEnergy, newCap)
 
+        const nextCoins = state.coins - proj.coinCost
         set({
-          coins: state.coins - proj.coinCost,
+          coins: nextCoins,
           activeBatteries: nextBatts,
           currentEnergy: nextEnergy,
           experience,
           level,
+          ...patchDailyQuestsFromEvent(
+            { ...state, coins: nextCoins, activeBatteries: nextBatts, currentEnergy: nextEnergy, experience, level },
+            { type: 'storage_expanded' },
+          ),
           ...touch(),
         })
         sfxBuying()
@@ -676,11 +782,16 @@ const useGameStore = create(
           xpAmt,
         )
 
+        const nextCoins = state.coins + coinsEarned
         set({
-          coins: state.coins + coinsEarned,
+          coins: nextCoins,
           currentEnergy: nextEnergy,
           experience,
           level,
+          ...patchDailyQuestsFromEvent(
+            { ...state, coins: nextCoins, currentEnergy: nextEnergy, experience, level },
+            { type: 'energy_sold', kwh: kwhSold, coins: coinsEarned },
+          ),
           ...touch(),
         })
         sfxBuying()
@@ -698,6 +809,20 @@ const useGameStore = create(
           coins: Math.max(0, state.coins - amount),
           ...touch(),
         })),
+
+      spendGeminiCredits: (amount) => {
+        const n = Math.floor(Number(amount))
+        if (!Number.isFinite(n) || n <= 0) {
+          return { ok: false, reason: 'Kredi miktarı geçersiz görünüyor.' }
+        }
+        const state = get()
+        const cur = state.geminiCredits ?? 0
+        if (cur < n) {
+          return { ok: false, reason: `Bu işlem için en az ${n} CastAI kredisi gerekir.` }
+        }
+        set({ geminiCredits: cur - n, ...touch() })
+        return { ok: true }
+      },
 
       addExperience: (amount) =>
         set((state) => {
@@ -756,6 +881,27 @@ const useGameStore = create(
           }
         }),
 
+      clearDailyQuestRewardToast: () => set({ dailyQuestRewardToast: null }),
+
+      /** Takvim günü için görev seti yoksa oluşturur (Dashboard girişinde çağrılır). */
+      ensureDailyQuestsForToday: () => {
+        set((state) => {
+          const today = getLocalDateKey()
+          if (
+            state.dailyQuestsDayKey === today &&
+            Array.isArray(state.dailyQuests) &&
+            state.dailyQuests.length > 0
+          ) {
+            return {}
+          }
+          return {
+            dailyQuestsDayKey: today,
+            dailyQuests: generateDailyQuestBatch(),
+            ...touch(),
+          }
+        })
+      },
+
       resetGame: () => set(createInitialGameState()),
     }),
     {
@@ -767,9 +913,18 @@ const useGameStore = create(
         if (!persistedState || version >= GAME_STORE_VERSION) {
           return persistedState
         }
+        const rawGc = persistedState.geminiCredits
+        const geminiCreditsMigrated =
+          typeof rawGc === 'number' && Number.isFinite(rawGc) && rawGc >= 0 ? Math.floor(rawGc) : 300
         const migrated = {
           ...persistedState,
           coins: persistedState.coins ?? persistedState.credits ?? 2000,
+          geminiCredits: geminiCreditsMigrated,
+          dailyQuestsDayKey:
+            typeof persistedState.dailyQuestsDayKey === 'string'
+              ? persistedState.dailyQuestsDayKey
+              : null,
+          dailyQuests: Array.isArray(persistedState.dailyQuests) ? persistedState.dailyQuests : [],
           currentEnergy:
             persistedState.currentEnergy ?? persistedState.energy ?? 0,
           day: persistedState.day ?? 1,
