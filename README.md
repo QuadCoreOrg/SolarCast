@@ -6,8 +6,6 @@ SolarCast, güneş enerjisi üretimini oyunlaştırılmış bir simülasyonda ke
 
 ## Sunum (Drive)
 
-Takım sunumunu buraya ekleyin:
-
 
 |                  |                                                                                                                                                         |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -67,7 +65,7 @@ Varsayılan olarak Vite geliştirme sunucusu (genelde `http://localhost:5173`) a
 
 ## Lisans
 
-Proje `private` olarak işaretlenmiştir; hackathon / takım politikasına göre lisansı netleştirin.
+MIT
 
 ---
 
