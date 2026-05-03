@@ -2,22 +2,8 @@ import { useState } from 'react'
 import logo from '../assets/solarcast-logo.png'
 import { FastForward, Pause, Play } from 'lucide-react'
 import useGameStore from '../store/useGameStore'
+import { formatGameCalendarDayMonthTr } from '../utils/gameCalendar'
 import PlayerProgressModal from './PlayerProgressModal'
-
-const MONTHS_TR = [
-  'Ocak',
-  'Şubat',
-  'Mart',
-  'Nisan',
-  'Mayıs',
-  'Haziran',
-  'Temmuz',
-  'Ağustos',
-  'Eylül',
-  'Ekim',
-  'Kasım',
-  'Aralık',
-]
 
 function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) {
   const [progressOpen, setProgressOpen] = useState(false)
@@ -27,6 +13,7 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
   const gameLoopMode = useGameStore((s) => s.gameLoopMode)
   const setGameLoopMode = useGameStore((s) => s.setGameLoopMode)
   const day = useGameStore((s) => s.day)
+  const startedAt = useGameStore((s) => s.startedAt)
   const hour = useGameStore((s) => s.hour)
   const isDayActive = useGameStore((s) => s.isDayActive)
   const coinsFromStore = useGameStore((s) => s.coins)
@@ -36,8 +23,7 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
   const coins = coinsProp ?? creditsLegacy ?? coinsFromStore
   const level = levelProp ?? levelFromStore
   const experience = experienceFromStore
-  const calendarDate = new Date(2026, 0, day)
-  const calendarLabel = `${calendarDate.getDate()} ${MONTHS_TR[calendarDate.getMonth()]}`
+  const calendarLabel = formatGameCalendarDayMonthTr(day, startedAt)
 
   return (
     <div className="sticky top-0 z-40 bg-background border-b-4 border-shade">
@@ -166,6 +152,7 @@ function Header({ coins: coinsProp, credits: creditsLegacy, level: levelProp }) 
         level={level}
         experience={experience}
         day={day}
+        startedAt={startedAt}
         hour={hour}
         isDayActive={isDayActive}
       />

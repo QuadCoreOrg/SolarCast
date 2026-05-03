@@ -28,7 +28,7 @@ import {
   xpForResearchPurchase,
   XP_REWARDS,
 } from '../constants/xpRewards'
-import { calculateGameDayProduction } from '../services/production'
+import { calculateGameDayProduction, getGameSimulationDate } from '../services/production'
 import { applyExperienceGain } from '../utils/progression'
 import { sfxBuying, sfxError } from '../utils/soundManager'
 
@@ -277,16 +277,18 @@ const useGameStore = create(
         }),
 
       startDay: async () => {
-        const { selectedCity, isDayActive } = get()
+        const { selectedCity, isDayActive, day, startedAt } = get()
         if (isDayActive) return
+
+        const gameDate = getGameSimulationDate(day, startedAt)
 
         let dailyForecast
         try {
-          dailyForecast = await calculateGameDayProduction(selectedCity || 'Ankara')
+          dailyForecast = await calculateGameDayProduction(selectedCity || 'Ankara', { gameDate })
         } catch (e) {
           console.error('[startDay]', e)
           try {
-            dailyForecast = await calculateGameDayProduction('Ankara')
+            dailyForecast = await calculateGameDayProduction('Ankara', { gameDate })
           } catch (e2) {
             console.error('[startDay] fallback', e2)
             return

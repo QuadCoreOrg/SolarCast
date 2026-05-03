@@ -1,6 +1,29 @@
 import cities from '../data/cities.json'
 
 /**
+ * Kampanya başlangıcı (`startedAt`) + oyun günü (1 tabanlı) ile Open-Meteo için kullanılacak takvim günü.
+ * Yerel takvimde gün eklenir; saat 12:00’a sabitlenir (DST / UTC kaymasından kaçınmak için).
+ *
+ * @param {number} gameDay
+ * @param {string | null | undefined} startedAtIso `startGame` ile kaydedilen ISO tarih
+ * @returns {Date}
+ */
+export function getGameSimulationDate(gameDay, startedAtIso) {
+  const d = Math.max(1, Math.floor(Number(gameDay)) || 1)
+  let base
+  if (typeof startedAtIso === 'string' && startedAtIso.length > 0) {
+    base = new Date(startedAtIso)
+  } else {
+    base = new Date()
+  }
+  if (Number.isNaN(base.getTime())) base = new Date()
+
+  const out = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 12, 0, 0, 0)
+  out.setDate(out.getDate() + (d - 1))
+  return out
+}
+
+/**
  * Oyundaki seçili güne ilişkin saat başı güneş paneli irradiance ve güç özeti — Open-Meteo Archive (`global_tilted_irradiance`, `temperature_2m`).
  * Oyun içi yıl nerede olursa olsun arşiv sorgusu 2024 aynı ay-gününe sabittir (29 Şubat → 28 Şubat).
  *
@@ -8,6 +31,8 @@ import cities from '../data/cities.json'
  * `power_watts` için: `panelArea * efficiency * GTI`; sıcaklık >25°C ise her derece için %0.4 oranında ham güç düşüşü.
  *
  * // TODO(Zustand): panelArea ve efficiency için store varsayılanlarını oluşturup options ile birleştir.
+ *
+ * `options.gameDate` verilmezse gerçek bugün kullanılır; oyun döngüsünde `getGameSimulationDate(day, startedAt)` ile verin.
  *
  * @param {string | null | undefined} cityName
  * @param {{

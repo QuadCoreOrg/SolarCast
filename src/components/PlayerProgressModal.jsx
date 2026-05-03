@@ -1,21 +1,7 @@
 import Modal from './Modal'
 import { Wallet, Gauge, Clock, Zap } from 'lucide-react'
 import { levelProgressPercent, xpRequiredForLevel } from '../utils/progression'
-
-const MONTHS_TR = [
-  'Ocak',
-  'Şubat',
-  'Mart',
-  'Nisan',
-  'Mayıs',
-  'Haziran',
-  'Temmuz',
-  'Ağustos',
-  'Eylül',
-  'Ekim',
-  'Kasım',
-  'Aralık',
-]
+import { formatGameCalendarDayMonthTr } from '../utils/gameCalendar'
 
 export default function PlayerProgressModal({
   isOpen,
@@ -24,13 +10,13 @@ export default function PlayerProgressModal({
   level,
   experience,
   day,
+  startedAt,
   hour,
   isDayActive,
 }) {
   const needXp = xpRequiredForLevel(level)
   const pct = levelProgressPercent(experience, level)
-  const calendarDate = new Date(2026, 0, typeof day === 'number' ? day : 1)
-  const calendarLabel = `${calendarDate.getDate()} ${MONTHS_TR[calendarDate.getMonth()]}`
+  const calendarLabel = formatGameCalendarDayMonthTr(typeof day === 'number' ? day : 1, startedAt)
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="İlerleme özeti" className="max-w-md">
