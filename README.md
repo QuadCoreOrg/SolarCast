@@ -1,16 +1,74 @@
-# React + Vite
+# SolarCast
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**[CodeXEnergy](https://duhackathon.com)** — DÜ Hackathon kapsamında geliştirilen enerji temalı bir web deneyimi.
 
-Currently, two official plugins are available:
+SolarCast, güneş enerjisi üretimini oyunlaştırılmış bir simülasyonda keşfetmenizi sağlar: şehir seçimi, hava ve güneş radyasyonu verileriyle günlük üretim, panel ve batarya yönetimi, spot fiyat benzeri enerji satışı, günlük görevler ve **Cast AI** (Google Gemini) ile enerji odaklı öneriler.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Sunum (Drive)
 
-## React Compiler
+Takım sunumunu buraya ekleyin:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+|                  |                                                                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Google Drive** | *[https://drive.google.com/drive/folders/13OJiq-1Lid-icB1FzPCgicxxy9oHGZRs](https://drive.google.com/drive/folders/13OJiq-1Lid-icB1FzPCgicxxy9oHGZRs])* |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Özellikler
+
+- **Landing:** Ürün tanıtımı, problem/çözüm ve özellik özetleri (`/`)
+- **Oyun akışı** (`/play`): Şehir seçimi, kontrol paneli, pazar, güç merkezi, depolama, keşif ve ayarlar
+- **Gerçekçi bağlam:** Open-Meteo tabanlı hava ve güneş radyasyonu ile günlük üretim ve özetler
+- **Ekonomi:** Enerji satışı, seviye ve coin sistemi, günlük görevler
+- **Cast AI:** Gemini API ile yerel geliştirmede AI önerileri (API anahtarı gerekir)
+
+## Teknolojiler
+
+- React 19, Vite 8, React Router 7  
+- Zustand (durum), Framer Motion (animasyon)  
+- Tailwind CSS 4  
+- `@google/genai` (Gemini), Axios, `react-simple-maps`  
+- Lucide React ikonları
+
+## Kurulum
+
+```bash
+npm install
+```
+
+### Ortam değişkenleri
+
+`.env.example` dosyasını kopyalayıp `.env.local` oluşturun:
+
+```bash
+cp .env.example .env.local
+```
+
+`VITE_GEMINI_API_KEY` alanına [Google AI Studio](https://aistudio.google.com/apikey) üzerinden aldığınız anahtarı yazın. Anahtar istemci paketine gömülür; üretimde güvenlik için ara sunucu kullanmayı değerlendirin.
+
+## Çalıştırma
+
+```bash
+npm run dev
+```
+
+Varsayılan olarak Vite geliştirme sunucusu (genelde `http://localhost:5173`) açılır.
+
+## Diğer komutlar
+
+
+| Komut             | Açıklama                                            |
+| ----------------- | --------------------------------------------------- |
+| `npm run build`   | Üretim derlemesi (`dist/`)                          |
+| `npm run preview` | Derlemeyi yerelde önizleme                          |
+| `npm run deploy`  | `gh-pages` ile `dist` yayını (yapılandırmaya bağlı) |
+| `npm run lint`    | ESLint                                              |
+
+
+## Lisans
+
+Proje `private` olarak işaretlenmiştir; hackathon / takım politikasına göre lisansı netleştirin.
+
+---
+
+*CodeXEnergy · Duhackathon — SolarCast*
