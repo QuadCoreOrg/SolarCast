@@ -112,7 +112,7 @@ function CitySelectScreen() {
                       {solarStats.sunHoursPerDay}sa
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-2.5 border-b-2 border-slate-900">
+                  <div className="flex items-center gap-2 px-3 py-2.5 border-slate-900">
                     <TrendingUp className="w-4 h-4 text-sprout-deep shrink-0" strokeWidth={2.25} />
                     <span className="text-xs font-bold text-shade-2 flex-1 min-w-0">
                       Potansiyel verim
@@ -121,7 +121,7 @@ function CitySelectScreen() {
                       %{solarStats.efficiencyPct}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-2.5">
+                  {/* <div className="flex items-center gap-2 px-3 py-2.5">
                     <CircleDollarSign className="w-4 h-4 text-shade shrink-0" strokeWidth={2.25} />
                     <span className="text-xs font-bold text-shade-2 flex-1 min-w-0">
                       Kurulum maliyeti
@@ -129,7 +129,7 @@ function CitySelectScreen() {
                     <span className="text-base font-black text-shade tabular-nums">
                       {formatCost(solarStats.setupCost)} ₺
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Footer CTA */}
